@@ -3,7 +3,7 @@ var browserSync  = require("browser-sync");
 var reload       = browserSync.reload;
 var htmlInjector = require("bs-html-injector");
 
-var coderBlog    = require("./coder-blog");
+var coderBlog    = require("./plugin");
 
 var fs           = require("fs");
 var sass         = require("gulp-sass");

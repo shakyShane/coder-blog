@@ -4,12 +4,20 @@ var path     = require("path");
 var Q        = require("q");
 var merge    = require("opt-merger").merge;
 var _        = require("lodash");
-var through2 = require("through2");
-var gutil    = require("gulp-util");
 var yaml     = require("js-yaml");
 var marked   = require('marked');
 
-var File     = gutil.File;
+var compiler = require("tfunk").Compiler({
+    prefix: "[%Cmagenta:CoderBlog%R] ",
+    custom: {
+        "error": "chalk.bgRed.white",
+        "warn": "chalk.red"
+    }
+});
+
+var log = compiler.compile;
+
+var cache    = {};
 
 /**
  * Make Dust templates retain whitespace
@@ -19,19 +27,22 @@ var File     = gutil.File;
  */
 dust.optimizers.format = function(ctx, node) { return node; };
 
-var defaults = {
-    configFile: "./_config.yml",
-    transformSiteConfig: transformSiteConfig,
-    env: "production"
-};
-
 /**
  * @param path
  * @returns {*}
  */
 function getFile(path) {
+
+    var content;
+
+    if (cache[path]) {
+        return cache[path];
+    }
+
     try {
-        return fs.readFileSync(path, "utf-8");
+        content = fs.readFileSync(path, "utf-8");
+        cache[path] = content;
+        return content;
     } catch (e) {
         return "";
     }
@@ -115,6 +126,7 @@ function makeFile(template, data) {
 function makeFilename(filePath) {
     return path.basename(filePath).split(".")[0] + ".html";
 }
+module.exports.makeFilename = makeFilename;
 
 /**
  * @param string
@@ -146,21 +158,6 @@ function readFrontMatter(file) {
 }
 
 /**
- * @param yaml
- * @param config
- */
-function transformSiteConfig(yaml, config) {
-
-    if (config.env === "dev") {
-        yaml.cssFile = yaml.css.dev;
-    } else {
-        yaml.cssFile = yaml.s3prefix + yaml.css.production;
-    }
-
-    return yaml;
-}
-
-/**
  * @param string
  */
 function getData(string, data) {
@@ -173,46 +170,9 @@ function getData(string, data) {
 }
 
 /**
- * @returns {Function}
+ * @param file
+ * @returns {*}
  */
-module.exports = function (config) {
-
-    config = merge(defaults, config || {});
-
-    var siteConfig = config.transformSiteConfig(getYaml(config.configFile), config);
-
-    var data  = {
-        site: siteConfig
-    };
-
-    return through2.obj(function (file, enc, cb) {
-
-        var stream         = this;
-        var contents       = file._contents.toString();
-
-        if (hasFrontMatter(contents)) {
-
-            data = getData(contents, data);
-
-            var fileName = makeFilename(file.path);
-
-            compile(config, data, function (out) {
-                stream.push(new File({
-                    cwd:  "./",
-                    base: "./",
-                    path: fileName,
-                    contents: new Buffer(out)
-                }));
-                cb();
-            });
-        }
-
-    }, function (cb) {
-
-        cb(null);
-    });
-};
-
 function getYaml(file) {
     try {
         return yaml.safeLoad(fs.readFileSync(file, "utf-8"));
@@ -220,3 +180,30 @@ function getYaml(file) {
         console.log(e);
     }
 }
+module.exports.getYaml = getYaml;
+
+module.exports.clearCache = function () {
+    cache = {};
+};
+
+/**
+ * Compile a single file
+ * @param string
+ * @param config
+ * @param cb
+ */
+module.exports.compileOne = function (string, config, cb) {
+
+    var data = {
+        site: config.siteConfig || getYaml("./_config.yml")
+    };
+
+    if (hasFrontMatter(string)) {
+
+        data = getData(string, data);
+
+        compile(config, data, function (out) {
+            cb(out);
+        });
+    }
+};
