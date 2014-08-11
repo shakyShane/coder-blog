@@ -65,6 +65,16 @@ function addIncludes(current) {
 }
 
 /**
+ * @param current
+ * @param content
+ * @returns {*|XML|string|void}
+ */
+function yeildContent(current, content) {
+    return current.replace(/{ yield: (.+?) }/, function () {
+        return content;
+    });
+}
+/**
  * @param config
  * @param data
  * @param cb
@@ -73,6 +83,7 @@ function compile(config, data, cb) {
 
     var current = getFile(getLayoutPath(data.page.layout));
     current     = addIncludes(current);
+    current     = yeildContent(current, data.content);
 
     data.config = config;
 
