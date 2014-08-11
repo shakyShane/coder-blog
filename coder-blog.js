@@ -2,7 +2,6 @@ var dust     = require("dustjs-linkedin");
 var fs       = require("fs");
 var path     = require("path");
 var Q        = require("q");
-var merge    = require("opt-merger").merge;
 var _        = require("lodash");
 var yaml     = require("js-yaml");
 var marked   = require('marked');
@@ -35,11 +34,14 @@ function getFile(path) {
 
     var content;
 
+    path = path.replace(/^\./, "");
+
     if (cache[path]) {
         return cache[path];
     }
 
     try {
+        console.log("Filesytem: %s", path);
         content = fs.readFileSync(path, "utf-8");
         cache[path] = content;
         return content;
@@ -47,6 +49,13 @@ function getFile(path) {
         return "";
     }
 }
+
+/**
+ *
+ */
+module.exports.populateCache = function (key, value) {
+    cache[key] = value;
+};
 
 /**
  * @param arguments

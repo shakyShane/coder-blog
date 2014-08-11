@@ -3,6 +3,7 @@ var gutil     = require("gulp-util");
 var File      = gutil.File;
 var coderBlog = require("./coder-blog");
 var merge     = require("opt-merger").merge;
+var Q         = require("q");
 
 var defaults = {
     configFile: "./_config.yml",
@@ -19,27 +20,61 @@ module.exports = function (config) {
 
     config.siteConfig = config.transformSiteConfig(coderBlog.getYaml(config.configFile), config);
 
+    var files = {};
+    var posts = {};
+    var stream;
+
     return through2.obj(function (file, enc, cb) {
 
-        var stream         = this;
-        var contents       = file._contents.toString();
-        var fileName       = coderBlog.makeFilename(file.path);
+        stream          = this;
+        var contents    = file._contents.toString();
+        var relFilePath = file.path.replace(file.cwd, "");
 
-        coderBlog.compileOne(contents, config, function (out) {
-            stream.push(new File({
-                cwd:  "./",
-                base: "./",
-                path: fileName,
-                contents: new Buffer(out)
-            }));
-            cb();
-        });
+        files[relFilePath] = contents;
+
+        cb();
 
     }, function (cb) {
-        coderBlog.clearCache();
-        cb(null);
+
+        var promises = [];
+        var queue = [];
+
+        Object.keys(files).forEach(function (key) {
+            if (isIncludeOrLayout(key)) {
+                coderBlog.populateCache(key, files[key]);
+            } else {
+                queue.push(key);
+            }
+        });
+
+        queue.forEach(function (key) {
+            var fileName = coderBlog.makeFilename(key);
+            promises.push(buildOne(stream, files[key], fileName, config));
+        });
+
+        Q.all(promises).then(function () {
+            coderBlog.clearCache();
+            cb(null);
+        });
     });
 };
+
+/**
+ *
+ */
+function buildOne(stream, contents, fileName, config) {
+    var promise = Q.defer();
+    coderBlog.compileOne(contents, config, function (out) {
+        stream.push(new File({
+            cwd:  "./",
+            base: "./",
+            path: fileName,
+            contents: new Buffer(out)
+        }));
+        promise.resolve();
+    });
+    return promise;
+}
 
 /**
  * @param yaml
@@ -54,4 +89,8 @@ function transformSiteConfig(yaml, config) {
     }
 
     return yaml;
+}
+
+function isIncludeOrLayout(path) {
+    return path.match(/(_includes|_layouts)/);
 }
