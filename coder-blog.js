@@ -30,8 +30,14 @@ var defaults = {
  * templates: { } option
  */
 var templatePaths = {
-    "default": "/_layouts/default.html",
-    "post":    "/_layouts/post.html"
+    layouts: {
+        "default": "/_layouts/default.html",
+        "post":    "/_layouts/post.html"
+    },
+    includes: {
+        head: "/_includes/head.html",
+        footer: "/_includes/footer.html"
+    }
 };
 
 /**
@@ -43,18 +49,21 @@ function getTemplates(config) {
 
     var templates = {};
 
-    Object.keys(templatePaths).forEach(function (key) {
-        if (config.templates && config.templates[key]) {
-            templates[key] = config.templates[key];
-        } else {
-            templates[key] = fs.readFileSync(__dirname + templatePaths[key], "utf-8");
-        }
+    _.each(templatePaths, function (item, parentKey) {
+
+        templates[parentKey] = {};
+
+        _.each(item, function (value, key) {
+
+            templates[parentKey][key] = fs.readFileSync(__dirname + value, "utf-8");
+        });
     });
 
     return templates;
 }
 
 /**
+ * @param filePath
  * @param stream
  * @param config
  * @param data
@@ -68,7 +77,7 @@ function compile(stream, config, data, filePath, cb) {
 
     var promises = [];
 
-    promises.push(makeFile(temps[data.page.layout], filePath, stream, data));
+    promises.push(makeFile(temps["layouts"][data.page.layout], filePath, stream, data));
 
     Q.all(promises).then(function () {
         cb();
@@ -163,24 +172,26 @@ module.exports = function (config) {
     config = merge(defaults, config || {});
 
     var siteConfig = config.transformSiteConfig(getYaml(config.configFile), config);
+    var data  = {
+        site: siteConfig
+    };
 
     return through2.obj(function (file, enc, cb) {
 
-        var stream      = this;
-        var contents    = file._contents.toString();
+        var stream         = this;
+        var contents       = file._contents.toString();
         var parsedContents = {};
 
         if (hasFrontMatter(contents)) {
+
             parsedContents = readFrontMatter(contents);
+
+            data.page    = parsedContents.front;
+            data.content = processPost(parsedContents.main);
+
+            compile(stream, config, data, makeFilename(file.path), cb);
+
         }
-
-        var data = {
-            page: parsedContents.front,
-            content: processPost(parsedContents.main),
-            site: siteConfig
-        };
-
-        compile(stream, config, data, makeFilename(file.path), cb);
 
     }, function (cb) {
         cb(null);
