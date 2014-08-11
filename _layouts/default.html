@@ -5,11 +5,9 @@
 
 <body>
 
-<main class="page-content">
-    <div class="container">
-        { content }
-    </div>
-</main>
+{ include: header.html }
+
+{content|s}
 
 { include: footer.html }
 

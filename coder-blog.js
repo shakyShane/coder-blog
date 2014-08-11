@@ -26,47 +26,31 @@ var defaults = {
 };
 
 /**
- * Default templates, can be overridden by supplying the same keys in the
- * templates: { } option
+ * @param path
+ * @returns {*}
  */
-var templatePaths = {
-    layouts: {
-        "default": "/_layouts/default.html",
-        "post":    "/_layouts/post.html"
+function getFile(path) {
+    try {
+        return fs.readFileSync(path, "utf-8");
+    } catch (e) {
+        return "";
     }
-};
-
-/**
- * Use user-provided templates first, defaults as fallback
- * @param {Object} config
- * @returns {Object}
- */
-function getTemplates(config) {
-
-    var templates = {};
-
-    _.each(templatePaths, function (item, parentKey) {
-
-        templates[parentKey] = {};
-
-        _.each(item, function (value, key) {
-
-            templates[parentKey][key] = fs.readFileSync(__dirname + value, "utf-8");
-        });
-    });
-
-    return templates;
 }
 
 /**
  * @param arguments
+ * @param name
  */
-function getInclude() {
-    try {
-        return fs.readFileSync("./_includes/" + arguments[1]);
-    } catch (e) {
-        return "";
-    }
+function getIncludePath(name) {
+    return "./_includes/" + name;
+}
+
+/**
+ * @param arguments
+ * @param name
+ */
+function getLayoutPath(name) {
+    return "./_layouts/" + (name || "default") + ".html";
 }
 
 /**
@@ -75,41 +59,32 @@ function getInclude() {
  * @returns {*|XML|string|void}
  */
 function addIncludes(current) {
-    return current.replace(/{ include: (.+?) }/g, getInclude);
-}
-/**
- * @param filePath
- * @param stream
- * @param config
- * @param data
- * @param cb
- */
-function compile(stream, config, data, filePath, cb) {
-
-    var temps   = getTemplates(config);
-    var current = temps["layouts"][data.page.layout];
-
-    current = addIncludes(current);
-
-    data.config = config;
-
-    var promises = [];
-
-    promises.push(makeFile(current, filePath, stream, data));
-
-    Q.all(promises).then(function () {
-        cb();
+    return current.replace(/{ include: (.+?) }/g, function () {
+        return getFile(getIncludePath(arguments[1]));
     });
 }
 
 /**
+ * @param config
+ * @param data
+ * @param cb
+ */
+function compile(config, data, cb) {
+
+    var current = getFile(getLayoutPath(data.page.layout));
+    current     = addIncludes(current);
+
+    data.config = config;
+
+    makeFile(current, data).then(cb);
+}
+
+/**
  * @param template
- * @param fileName
- * @param stream
  * @param data
  * @returns {Promise.promise|*}
  */
-function makeFile(template, fileName, stream, data) {
+function makeFile(template, data) {
 
     var deferred = Q.defer();
     var id = _.uniqueId();
@@ -117,14 +92,6 @@ function makeFile(template, fileName, stream, data) {
     dust.compileFn(template, id, false);
 
     dust.render(id, data, function (err, out) {
-
-        stream.push(new File({
-            cwd:  "./",
-            base: "./",
-            path: fileName,
-            contents: new Buffer(out)
-        }));
-
         deferred.resolve(out);
     });
 
@@ -132,7 +99,7 @@ function makeFile(template, fileName, stream, data) {
 }
 
 /**
- * @param path
+ * @param filePath
  */
 function makeFilename(filePath) {
     return path.basename(filePath).split(".")[0] + ".html";
@@ -183,6 +150,18 @@ function transformSiteConfig(yaml, config) {
 }
 
 /**
+ * @param string
+ */
+function getData(string, data) {
+
+    var parsedContents = readFrontMatter(string);
+    data.page    = parsedContents.front;
+    data.content = processPost(parsedContents.main);
+
+    return data;
+}
+
+/**
  * @returns {Function}
  */
 module.exports = function (config) {
@@ -190,6 +169,7 @@ module.exports = function (config) {
     config = merge(defaults, config || {});
 
     var siteConfig = config.transformSiteConfig(getYaml(config.configFile), config);
+
     var data  = {
         site: siteConfig
     };
@@ -198,20 +178,26 @@ module.exports = function (config) {
 
         var stream         = this;
         var contents       = file._contents.toString();
-        var parsedContents = {};
 
         if (hasFrontMatter(contents)) {
 
-            parsedContents = readFrontMatter(contents);
+            data = getData(contents, data);
 
-            data.page    = parsedContents.front;
-            data.content = processPost(parsedContents.main);
+            var fileName = makeFilename(file.path);
 
-            compile(stream, config, data, makeFilename(file.path), cb);
-
+            compile(config, data, function (out) {
+                stream.push(new File({
+                    cwd:  "./",
+                    base: "./",
+                    path: fileName,
+                    contents: new Buffer(out)
+                }));
+                cb();
+            });
         }
 
     }, function (cb) {
+
         cb(null);
     });
 };
