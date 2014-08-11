@@ -1,0 +1,121 @@
+var gulp         = require("gulp");
+var browserSync  = require("browser-sync");
+var reload       = browserSync.reload;
+var htmlInjector = require("bs-html-injector");
+
+var coderBlog    = require("./coder-blog");
+
+var fs           = require("fs");
+var sass         = require("gulp-sass");
+var minifyCSS    = require("gulp-minify-css");
+var rename       = require("gulp-rename");
+var prefix       = require("gulp-autoprefixer");
+var through2     = require("through2");
+var cp           = require("child_process");
+var rev          = require("gulp-rev");
+var awspublish   = require('gulp-awspublish');
+var yaml         = require('js-yaml');
+
+var aws          = require("./.aws.json");
+var configPath   = "./_config.yml";
+var config       = yaml.safeLoad(fs.readFileSync(configPath, "utf-8"));
+
+/**
+ * Start BrowserSync
+ */
+gulp.task("browser-sync", function () {
+    browserSync.use(htmlInjector, {});
+    browserSync({
+        server: "_site"
+    });
+});
+
+/**
+ * Default task
+ */
+gulp.task("default", ["build-blog-dev", "browser-sync"], function () {
+    gulp.watch([
+        "_layouts/*.html",
+        "_posts/*.md",
+        "*.yml",
+        "index.html"
+    ],  ["build-blog", htmlInjector]);
+});
+
+/**
+ * Compile files from _scss into both _site/css (for live injecting) and site (for future jekyll builds)
+ */
+gulp.task("sass", function () {
+    browserSync.notify("Compiling SASS...");
+    return gulp.src(["_scss/**/*.scss"])
+        .pipe(sass())
+        .pipe(prefix(["last 5 versions", "> 1%", "ie 8"], { cascade: true }))
+        .pipe(gulp.dest("_site/css"))
+        .pipe(browserSync.reload({stream:true}))
+        .pipe(minifyCSS({keepBreaks:false}))
+        .pipe(rename("main.min.css"))
+        .pipe(gulp.dest("_site/css"));
+});
+
+/**
+ * REV css file
+ */
+gulp.task("rev:css", ['sass'], function () {
+
+    var publisher = awspublish.create(require("./.aws.json"));
+
+    var headers = {
+        'Cache-Control': 'max-age=315360000, no-transform, public',
+        'Expires': new Date(Date.now() + 63072000000).toUTCString()
+    };
+
+    function updateYaml(file, cb) {
+        try {
+            console.log(config.css.production);
+            console.log(file.s3.path);
+            config.css.production = file.s3.path;
+            fs.writeFileSync(configPath, yaml.safeDump(config));
+        } catch (e) {
+            console.log(e);
+        }
+        cb(null);
+    }
+
+    return gulp.src("_site/css/main.min.css")
+
+        .pipe(rev())
+        // gzip, Set Content-Encoding headers and add .gz extension
+        .pipe(awspublish.gzip())
+
+        // publisher will add Content-Length, Content-Type and  headers specified above
+        // If not specified it will set x-amz-acl to public-read by default
+        .pipe(publisher.publish(headers))
+
+        // create a cache file to speed up consecutive uploads
+        .pipe(publisher.cache())
+
+        // print upload updates to console
+        .pipe(through2.obj(function (file, enc, cb) {
+            updateYaml(file, cb);
+        }));
+});
+
+/**
+ * Default task
+ */
+gulp.task("build", ['rev:css'], function () {
+
+    return gulp.src(["_posts/*.md", "index.html"])
+        .pipe(coderBlog())
+        .pipe(gulp.dest("_site"));
+});
+
+/**
+ * Default task
+ */
+gulp.task("build-blog-dev", ['sass'], function () {
+
+    return gulp.src(["_posts/*.md", "index.html"])
+        .pipe(coderBlog({env: "dev"}))
+        .pipe(gulp.dest("_site"));
+});
