@@ -33,10 +33,6 @@ var templatePaths = {
     layouts: {
         "default": "/_layouts/default.html",
         "post":    "/_layouts/post.html"
-    },
-    includes: {
-        head: "/_includes/head.html",
-        footer: "/_includes/footer.html"
     }
 };
 
@@ -63,6 +59,25 @@ function getTemplates(config) {
 }
 
 /**
+ * @param arguments
+ */
+function getInclude() {
+    try {
+        return fs.readFileSync("./_includes/" + arguments[1]);
+    } catch (e) {
+        return "";
+    }
+}
+
+/**
+ * @param current
+ * @param arguments
+ * @returns {*|XML|string|void}
+ */
+function addIncludes(current) {
+    return current.replace(/{ include: (.+?) }/g, getInclude);
+}
+/**
  * @param filePath
  * @param stream
  * @param config
@@ -71,13 +86,16 @@ function getTemplates(config) {
  */
 function compile(stream, config, data, filePath, cb) {
 
-    var temps = getTemplates(config);
+    var temps   = getTemplates(config);
+    var current = temps["layouts"][data.page.layout];
+
+    current = addIncludes(current);
 
     data.config = config;
 
     var promises = [];
 
-    promises.push(makeFile(temps["layouts"][data.page.layout], filePath, stream, data));
+    promises.push(makeFile(current, filePath, stream, data));
 
     Q.all(promises).then(function () {
         cb();

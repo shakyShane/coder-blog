@@ -32,13 +32,15 @@ gulp.task("browser-sync", function () {
 /**
  * Default task
  */
-gulp.task("default", ["build-blog-dev", "browser-sync"], function () {
+gulp.task("default", ["build-blog", "sass", "browser-sync"], function () {
     gulp.watch([
         "_layouts/*.html",
         "_posts/*.md",
         "*.yml",
         "index.html"
     ],  ["build-blog", htmlInjector]);
+
+    gulp.watch(["_scss/**/*.scss"], ["sass"]);
 });
 
 /**
@@ -49,11 +51,10 @@ gulp.task("sass", function () {
     return gulp.src(["_scss/**/*.scss"])
         .pipe(sass())
         .pipe(prefix(["last 5 versions", "> 1%", "ie 8"], { cascade: true }))
-        .pipe(gulp.dest("_site/css"))
-        .pipe(browserSync.reload({stream:true}))
-        .pipe(minifyCSS({keepBreaks:false}))
-        .pipe(rename("main.min.css"))
         .pipe(gulp.dest("_site/css"));
+//        .pipe(minifyCSS({keepBreaks:false}))
+//        .pipe(rename("main.min.css"))
+//        .pipe(gulp.dest("_site/css"));
 });
 
 /**
@@ -112,11 +113,9 @@ gulp.task("build", ['rev:css'], function () {
 /**
  * Default task
  */
-gulp.task("build-blog-dev", ['sass'], function () {
+gulp.task("build-blog", function () {
 
-//    return gulp.src(["_posts/*.md", "index.html"])
     return gulp.src(["_posts/*.md"])
-//    return gulp.src(["index.html"])
         .pipe(coderBlog({env: "dev"}))
         .pipe(gulp.dest("_site"));
 });
