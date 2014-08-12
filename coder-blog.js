@@ -2,14 +2,21 @@ var dust     = require("dustjs-linkedin");
 var fs       = require("fs");
 var path     = require("path");
 var Q        = require("q");
-var merge    = require("opt-merger").merge;
 var _        = require("lodash");
-var through2 = require("through2");
-var gutil    = require("gulp-util");
 var yaml     = require("js-yaml");
 var marked   = require('marked');
 
-var File     = gutil.File;
+var compiler = require("tfunk").Compiler({
+    prefix: "[%Cmagenta:CoderBlog%R] ",
+    custom: {
+        "error": "chalk.bgRed.white",
+        "warn": "chalk.red"
+    }
+});
+
+var log = compiler.compile;
+
+var cache    = {};
 
 /**
  * Make Dust templates retain whitespace
@@ -19,70 +26,96 @@ var File     = gutil.File;
  */
 dust.optimizers.format = function(ctx, node) { return node; };
 
-var defaults = {
-    configFile: "./_config.yml",
-    transformSiteConfig: transformSiteConfig,
-    env: "production"
-};
-
 /**
- * Default templates, can be overridden by supplying the same keys in the
- * templates: { } option
+ * @param path
+ * @returns {*}
  */
-var templatePaths = {
-    "default": "/_layouts/default.html",
-    "post":    "/_layouts/post.html"
-};
+function getFile(path) {
 
-/**
- * Use user-provided templates first, defaults as fallback
- * @param {Object} config
- * @returns {Object}
- */
-function getTemplates(config) {
+    var content;
 
-    var templates = {};
+    path = path.replace(/^\./, "");
 
-    Object.keys(templatePaths).forEach(function (key) {
-        if (config.templates && config.templates[key]) {
-            templates[key] = config.templates[key];
-        } else {
-            templates[key] = fs.readFileSync(__dirname + templatePaths[key], "utf-8");
-        }
-    });
+    if (cache[path]) {
+        return cache[path];
+    }
 
-    return templates;
+    try {
+        console.log("Filesytem: %s", path);
+        content = fs.readFileSync(path, "utf-8");
+        cache[path] = content;
+        return content;
+    } catch (e) {
+        return "";
+    }
 }
 
 /**
- * @param stream
+ *
+ */
+module.exports.populateCache = function (key, value) {
+    cache[key] = value;
+};
+
+/**
+ * @param arguments
+ * @param name
+ */
+function getIncludePath(name) {
+    return "./_includes/" + name;
+}
+
+/**
+ * @param arguments
+ * @param name
+ */
+function getLayoutPath(name) {
+    return "./_layouts/" + (name || "default") + ".html";
+}
+
+/**
+ * @param current
+ * @param arguments
+ * @returns {*|XML|string|void}
+ */
+function addIncludes(current) {
+    return current.replace(/{ include: (.+?) }/g, function () {
+        return getFile(getIncludePath(arguments[1]));
+    });
+}
+
+/**
+ * @param current
+ * @param content
+ * @returns {*|XML|string|void}
+ */
+function yeildContent(current, content) {
+    return current.replace(/{ yield: (.+?) }/, function () {
+        return content;
+    });
+}
+/**
  * @param config
  * @param data
  * @param cb
  */
-function compile(stream, config, data, filePath, cb) {
+function compile(config, data, cb) {
 
-    var temps = getTemplates(config);
+    var current = getFile(getLayoutPath(data.page.layout));
+    current     = addIncludes(current);
+    current     = yeildContent(current, data.content);
 
     data.config = config;
 
-    var promises = [];
-
-    promises.push(makeFile(temps[data.page.layout], filePath, stream, data));
-
-    Q.all(promises).then(function () {
-        cb();
-    });
+    makeFile(current, data).then(cb);
 }
 
 /**
  * @param template
- * @param fileName
- * @param stream
  * @param data
  * @returns {Promise.promise|*}
  */
-function makeFile(template, fileName, stream, data) {
+function makeFile(template, data) {
 
     var deferred = Q.defer();
     var id = _.uniqueId();
@@ -90,14 +123,6 @@ function makeFile(template, fileName, stream, data) {
     dust.compileFn(template, id, false);
 
     dust.render(id, data, function (err, out) {
-
-        stream.push(new File({
-            cwd:  "./",
-            base: "./",
-            path: fileName,
-            contents: new Buffer(out)
-        }));
-
         deferred.resolve(out);
     });
 
@@ -105,11 +130,12 @@ function makeFile(template, fileName, stream, data) {
 }
 
 /**
- * @param path
+ * @param filePath
  */
 function makeFilename(filePath) {
     return path.basename(filePath).split(".")[0] + ".html";
 }
+module.exports.makeFilename = makeFilename;
 
 /**
  * @param string
@@ -141,52 +167,21 @@ function readFrontMatter(file) {
 }
 
 /**
- * @param yaml
- * @param config
+ * @param string
  */
-function transformSiteConfig(yaml, config) {
+function getData(string, data) {
 
-    if (config.env === "dev") {
-        yaml.cssFile = yaml.css.dev;
-    } else {
-        yaml.cssFile = yaml.s3prefix + yaml.css.production;
-    }
+    var parsedContents = readFrontMatter(string);
+    data.page    = parsedContents.front;
+    data.content = processPost(parsedContents.main);
 
-    return yaml;
+    return data;
 }
 
 /**
- * @returns {Function}
+ * @param file
+ * @returns {*}
  */
-module.exports = function (config) {
-
-    config = merge(defaults, config || {});
-
-    var siteConfig = config.transformSiteConfig(getYaml(config.configFile), config);
-
-    return through2.obj(function (file, enc, cb) {
-
-        var stream      = this;
-        var contents    = file._contents.toString();
-        var parsedContents = {};
-
-        if (hasFrontMatter(contents)) {
-            parsedContents = readFrontMatter(contents);
-        }
-
-        var data = {
-            page: parsedContents.front,
-            content: processPost(parsedContents.main),
-            site: siteConfig
-        };
-
-        compile(stream, config, data, makeFilename(file.path), cb);
-
-    }, function (cb) {
-        cb(null);
-    });
-};
-
 function getYaml(file) {
     try {
         return yaml.safeLoad(fs.readFileSync(file, "utf-8"));
@@ -194,3 +189,30 @@ function getYaml(file) {
         console.log(e);
     }
 }
+module.exports.getYaml = getYaml;
+
+module.exports.clearCache = function () {
+    cache = {};
+};
+
+/**
+ * Compile a single file
+ * @param string
+ * @param config
+ * @param cb
+ */
+module.exports.compileOne = function (string, config, cb) {
+
+    var data = {
+        site: config.siteConfig || getYaml("./_config.yml")
+    };
+
+    if (hasFrontMatter(string)) {
+
+        data = getData(string, data);
+
+        compile(config, data, function (out) {
+            cb(out);
+        });
+    }
+};
