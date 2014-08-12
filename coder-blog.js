@@ -40,7 +40,7 @@ function getFile(filePath) {
 
     var content;
 
-    filePath = path.resolve(process.cwd() + filePath.replace(/^\./, ""));
+    filePath = path.resolve(filePath.replace(/^\./, ""));
 
     if (cache[filePath]) {
         return cache[filePath];
@@ -246,6 +246,7 @@ module.exports.compileOne = function (string, config, cb) {
         });
     } else {
         // Probably just copy this file.
+        cb(string);
     }
 };
 
