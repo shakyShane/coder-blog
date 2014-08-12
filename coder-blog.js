@@ -80,7 +80,7 @@ function getLayoutPath(name) {
  */
 function addIncludes(current) {
     return current.replace(/{ include: (.+?) }/g, function () {
-        return getFile(getIncludePath(arguments[1]));
+        return addIncludes(getFile(getIncludePath(arguments[1])));
     });
 }
 
@@ -102,13 +102,13 @@ function yeildContent(current, content) {
 function compile(config, data, cb) {
 
     var current     = getFile(getLayoutPath(data.page.layout));
-    current         = addIncludes (current);
+    current         = addIncludes(current);
 
     var postContent = addIncludes(data.parsedContent.main);
     postContent     = processMardownFile(postContent);
     current         = yeildContent(current, postContent);
 
-    current         = addIncludes (current);
+    current         = addIncludes(current);
 
     data.config = config;
 
