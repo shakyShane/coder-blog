@@ -16,6 +16,7 @@ var defaults = {
  */
 module.exports = function (config) {
 
+    console.time("coderBlog");
     config = merge(defaults, config || {});
 
     config.siteConfig = config.transformSiteConfig(coderBlog.getYaml(config.configFile), config);
@@ -43,6 +44,12 @@ module.exports = function (config) {
             if (isIncludeOrLayout(key)) {
                 coderBlog.populateCache(key, files[key]);
             } else {
+                if (isPost(key)) {
+                    coderBlog.addPost(key, files[key]);
+                }
+                if (isPage(key)) {
+                    coderBlog.addPage(key, files[key]);
+                }
                 queue.push(key);
             }
         });
@@ -54,6 +61,7 @@ module.exports = function (config) {
 
         Q.all(promises).then(function () {
             coderBlog.clearCache();
+            console.timeEnd("coderBlog");
             cb(null);
         });
     });
@@ -93,4 +101,12 @@ function transformSiteConfig(yaml, config) {
 
 function isIncludeOrLayout(path) {
     return path.match(/(_includes|_layouts)/);
+}
+
+function isPost(path) {
+  return path.match(/_posts/);
+}
+
+function isPage(path) {
+  return path.match(/\.html$/);
 }

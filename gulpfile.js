@@ -51,7 +51,8 @@ gulp.task("sass", function () {
     return gulp.src(["_scss/**/*.scss"])
         .pipe(sass())
         .pipe(prefix(["last 5 versions", "> 1%", "ie 8"], { cascade: true }))
-        .pipe(gulp.dest("_site/css"));
+        .pipe(gulp.dest("_site/css"))
+        .pipe(browserSync.reload({stream:true}));
 //        .pipe(minifyCSS({keepBreaks:false}))
 //        .pipe(rename("main.min.css"))
 //        .pipe(gulp.dest("_site/css"));
@@ -115,7 +116,7 @@ gulp.task("build", ['rev:css'], function () {
  */
 gulp.task("build-blog", function () {
 
-    return gulp.src(["_posts/*.md", "_includes/*.html", "_layouts/*.html"])
+    return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "*.html"])
         .pipe(coderBlog({env: "dev"}))
         .pipe(gulp.dest("_site"));
 });

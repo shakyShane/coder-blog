@@ -17,6 +17,12 @@ var compiler = require("tfunk").Compiler({
 var log = compiler.compile;
 
 var cache    = {};
+var posts    = [];
+var pages    = [];
+
+var defaults = {
+    configFile: "./_config.yml"
+};
 
 /**
  * Make Dust templates retain whitespace
@@ -27,25 +33,25 @@ var cache    = {};
 dust.optimizers.format = function(ctx, node) { return node; };
 
 /**
- * @param path
+ * @param filePath
  * @returns {*}
  */
-function getFile(path) {
+function getFile(filePath) {
 
     var content;
 
-    path = path.replace(/^\./, "");
+    filePath = path.resolve(filePath.replace(/^\./, ""));
 
-    if (cache[path]) {
-        return cache[path];
+    if (cache[filePath]) {
+        return cache[filePath];
     }
 
     try {
-        console.log("Filesytem: %s", path);
-        content = fs.readFileSync(path, "utf-8");
-        cache[path] = content;
+        content = fs.readFileSync(filePath, "utf-8");
+        cache[filePath] = content;
         return content;
     } catch (e) {
+        console.log(log("%Cred:[warn] %R%s not found - %s"), filePath, e);
         return "";
     }
 }
@@ -80,7 +86,7 @@ function getLayoutPath(name) {
  */
 function addIncludes(current) {
     return current.replace(/{ include: (.+?) }/g, function () {
-        return getFile(getIncludePath(arguments[1]));
+        return addIncludes(getFile(getIncludePath(arguments[1])));
     });
 }
 
@@ -101,9 +107,15 @@ function yeildContent(current, content) {
  */
 function compile(config, data, cb) {
 
-    var current = getFile(getLayoutPath(data.page.layout));
-    current     = addIncludes(current);
-    current     = yeildContent(current, data.content);
+    var current     = getFile(getLayoutPath(data.page.layout));
+    current         = addIncludes(current);
+
+    var postContent = addIncludes(data.parsedContent.main);
+    postContent     = processMardownFile(postContent);
+    current         = yeildContent(current, postContent);
+
+    // Add any more includes from
+    current         = addIncludes(current);
 
     data.config = config;
 
@@ -141,7 +153,7 @@ module.exports.makeFilename = makeFilename;
  * @param string
  * @returns {*|exports}
  */
-function processPost(string) {
+function processMardownFile(string) {
     return marked(string);
 }
 
@@ -167,13 +179,29 @@ function readFrontMatter(file) {
 }
 
 /**
+ * @param posts
+ * @returns {*}
+ */
+function preparePosts(posts) {
+
+    return posts.map(function (post) {
+        _.each(post.front, function (value, key) {
+            post[key] = value;
+        });
+        return post;
+    });
+}
+/**
  * @param string
  */
 function getData(string, data) {
 
     var parsedContents = readFrontMatter(string);
-    data.page    = parsedContents.front;
-    data.content = processPost(parsedContents.main);
+    data.page          = parsedContents.front;
+    data.parsedContent = parsedContents;
+
+    data.posts         = preparePosts(posts);
+    data.pages         = pages;
 
     return data;
 }
@@ -193,6 +221,8 @@ module.exports.getYaml = getYaml;
 
 module.exports.clearCache = function () {
     cache = {};
+    posts = [];
+    pages = [];
 };
 
 /**
@@ -204,7 +234,7 @@ module.exports.clearCache = function () {
 module.exports.compileOne = function (string, config, cb) {
 
     var data = {
-        site: config.siteConfig || getYaml("./_config.yml")
+        site: config.siteConfig || getYaml(defaults.configFile)
     };
 
     if (hasFrontMatter(string)) {
@@ -214,5 +244,24 @@ module.exports.compileOne = function (string, config, cb) {
         compile(config, data, function (out) {
             cb(out);
         });
+    } else {
+        // Probably just copy this file.
+        cb(string);
     }
+};
+
+/**
+ * @param key
+ * @param string
+ */
+module.exports.addPost = function (key, string) {
+    posts.push(readFrontMatter(string));
+};
+
+/**
+ * @param key
+ * @param string
+ */
+module.exports.addPage = function (key, string) {
+    pages.push(readFrontMatter(string));
 };
