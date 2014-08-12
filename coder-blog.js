@@ -101,9 +101,14 @@ function yeildContent(current, content) {
  */
 function compile(config, data, cb) {
 
-    var current = getFile(getLayoutPath(data.page.layout));
-    current     = addIncludes(current);
-    current     = yeildContent(current, data.content);
+    var current     = getFile(getLayoutPath(data.page.layout));
+    current         = addIncludes (current);
+
+    var postContent = addIncludes(data.parsedContent.main);
+    postContent     = processMardownFile(postContent);
+    current         = yeildContent(current, postContent);
+
+    current         = addIncludes (current);
 
     data.config = config;
 
@@ -141,7 +146,7 @@ module.exports.makeFilename = makeFilename;
  * @param string
  * @returns {*|exports}
  */
-function processPost(string) {
+function processMardownFile(string) {
     return marked(string);
 }
 
@@ -172,8 +177,8 @@ function readFrontMatter(file) {
 function getData(string, data) {
 
     var parsedContents = readFrontMatter(string);
-    data.page    = parsedContents.front;
-    data.content = processPost(parsedContents.main);
+    data.page          = parsedContents.front;
+    data.parsedContent = parsedContents;
 
     return data;
 }
