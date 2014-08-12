@@ -16,6 +16,7 @@ var defaults = {
  */
 module.exports = function (config) {
 
+    console.time("coderBlog");
     config = merge(defaults, config || {});
 
     config.siteConfig = config.transformSiteConfig(coderBlog.getYaml(config.configFile), config);
@@ -54,6 +55,7 @@ module.exports = function (config) {
 
         Q.all(promises).then(function () {
             coderBlog.clearCache();
+            console.timeEnd("coderBlog");
             cb(null);
         });
     });
