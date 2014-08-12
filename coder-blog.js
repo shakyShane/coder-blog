@@ -221,6 +221,8 @@ module.exports.getYaml = getYaml;
 
 module.exports.clearCache = function () {
     cache = {};
+    posts = [];
+    pages = [];
 };
 
 /**
