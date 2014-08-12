@@ -44,6 +44,12 @@ module.exports = function (config) {
             if (isIncludeOrLayout(key)) {
                 coderBlog.populateCache(key, files[key]);
             } else {
+                if (isPost(key)) {
+                    coderBlog.addPost(key, files[key]);
+                }
+                if (isPage(key)) {
+                    coderBlog.addPage(key, files[key]);
+                }
                 queue.push(key);
             }
         });
@@ -95,4 +101,12 @@ function transformSiteConfig(yaml, config) {
 
 function isIncludeOrLayout(path) {
     return path.match(/(_includes|_layouts)/);
+}
+
+function isPost(path) {
+  return path.match(/_posts/);
+}
+
+function isPage(path) {
+  return path.match(/\.html$/);
 }

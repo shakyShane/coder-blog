@@ -17,6 +17,8 @@ var compiler = require("tfunk").Compiler({
 var log = compiler.compile;
 
 var cache    = {};
+var posts    = [];
+var pages    = [];
 
 var defaults = {
     configFile: "./_config.yml"
@@ -177,6 +179,19 @@ function readFrontMatter(file) {
 }
 
 /**
+ * @param posts
+ * @returns {*}
+ */
+function preparePosts(posts) {
+
+    return posts.map(function (post) {
+        _.each(post.front, function (value, key) {
+            post[key] = value;
+        });
+        return post;
+    });
+}
+/**
  * @param string
  */
 function getData(string, data) {
@@ -184,6 +199,9 @@ function getData(string, data) {
     var parsedContents = readFrontMatter(string);
     data.page          = parsedContents.front;
     data.parsedContent = parsedContents;
+
+    data.posts         = preparePosts(posts);
+    data.pages         = pages;
 
     return data;
 }
@@ -227,4 +245,20 @@ module.exports.compileOne = function (string, config, cb) {
     } else {
         // Probably just copy this file.
     }
+};
+
+/**
+ * @param key
+ * @param string
+ */
+module.exports.addPost = function (key, string) {
+    posts.push(readFrontMatter(string));
+};
+
+/**
+ * @param key
+ * @param string
+ */
+module.exports.addPage = function (key, string) {
+    pages.push(readFrontMatter(string));
 };
