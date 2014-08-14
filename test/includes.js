@@ -122,4 +122,46 @@ describe("Processing a file", function(){
             done();
         });
     });
+
+    it("Setting short keys for includes in cache", function(done) {
+
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Blogging is coolio"
+         date: 2013-11-13 20:51:39
+         ---
+
+         {>button text="Sign Up" /}
+         */});
+
+        // NO POSTS ADDED
+        coderBlog.populateCache("/_includes/button.tmpl.html", "<button>{text}</button>");
+        coderBlog.compileOne(post2, {}, function (out) {
+            assert.isTrue(_.contains(out, '<button>Sign Up</button>'));
+            done();
+        });
+    });
+
+    it.only("Setting short keys, but still allow paths for includes in cache", function(done) {
+
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Blogging is coolio"
+         date: 2013-11-13 20:51:39
+         ---
+
+         {#inc tmpl="button" text="Sign up"/}
+
+         */});
+
+        // NO POSTS ADDED
+        coderBlog.populateCache("/_includes/button.tmpl.html", "<button>{text}</button>");
+        coderBlog.compileOne(post2, {}, function (out) {
+            console.log(out);
+            assert.isTrue(_.contains(out, '<button>Sign up</button>'));
+            done();
+        });
+    });
 });

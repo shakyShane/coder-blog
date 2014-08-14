@@ -102,6 +102,14 @@ function getFile(filePath) {
 }
 
 /**
+ *
+ *
+ */
+function isInclude(path) {
+    return path.match(/([./])?_includes/);
+}
+
+/**
  * @param arguments
  * @param name
  */
@@ -233,6 +241,8 @@ function getData(string, data) {
     data.posts         = preparePosts(posts);
     data.pages         = pages;
 
+    data.inc           = getIncludeResolver(data);
+
     return data;
 }
 
@@ -268,6 +278,52 @@ function prepareContent(out, data, config) {
         return out;
     }
 }
+
+/**
+ * @returns {boolean}
+ */
+function isInCache(value, key) {
+    if (isInclude(key)) {
+        if (cache[key]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @returns {Function}
+ */
+function getIncludeResolver(data) {
+
+    return function (chunk, context, bodies, params) {
+
+        log("debug", "Looking for '" + params.tmpl + "' in the cache.");
+
+        var match;
+
+        if (match = _.filter(cache, function (value, item) {
+            return item === params.tmpl;
+        }))
+
+        if (!match) {
+            console.log("not found in any caches");
+        }
+
+        return chunk.partial(params.tmpl, dust.makeBase(params));
+
+//        console.log(match[0]);
+
+//        console.log(chunk.render(match[0], context));
+//        chunk.write(match[0]);
+
+        return chunk;
+
+//        if (Object.keys(cache).some(isInCache)) {
+//        }
+    }
+}
+
 /**
  * Compile a single file
  * @param string
@@ -282,7 +338,7 @@ module.exports.compileOne = function (string, config, cb) {
 
     if (hasFrontMatter(string)) {
 
-        data = getData(string, data);
+        data     = getData(string, data);
 
         makeFile(data.content, data).then(render);
 
@@ -301,14 +357,35 @@ module.exports.compileOne = function (string, config, cb) {
 };
 
 
+/**
+ * Shortkey for includes
+ * @param key
+ * @returns {*}
+ */
+function makeShortKey(key) {
+    return path.basename(key).split(".")[0];
+}
 
 /**
  *
  */
 module.exports.populateCache = function (key, value) {
+
+    var shortKey;
+
     log("debug", "Adding to cache: " + key);
+
+    if (isInclude(key)) {
+
+        if (shortKey = makeShortKey(key)) {
+            log("debug", "Adding INCLUDE to cache via short key: " + key);
+            dust.loadSource(dust.compile(value, shortKey));
+            cache[shortKey] = value;
+        }
+    }
+
     dust.loadSource(dust.compile(value, key));
-    cache[key] = value;
+    cache[key]      = value;
 };
 
 /**
