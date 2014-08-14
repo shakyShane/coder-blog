@@ -1,12 +1,33 @@
-var dust     = require("dustjs-linkedin");
 var fs       = require("fs");
 var path     = require("path");
 var Q        = require("q");
 var _        = require("lodash");
+
+/**
+ * Dust for awesome templates
+ * @type {dust|exports}
+ */
+var dust     = require("dustjs-linkedin");
+
+/**
+ * Yaml parsing
+ * @type {yaml|exports}
+ */
 var yaml     = require("js-yaml");
+
+/**
+ * Markdown parsing
+ * @type {marked|exports}
+ */
 var marked   = require('marked');
 
-var compiler = require("tfunk").Compiler({
+/**
+ * tfunk for terminal colours
+ * @type {compile|exports}
+ */
+var tfunk    = require("tfunk");
+var logLevel = "warn"; // debug, error, warn
+var compiler = new tfunk.Compiler({
     prefix: "[%Cmagenta:CoderBlog%R] ",
     custom: {
         "error": "chalk.bgRed.white",
@@ -14,15 +35,33 @@ var compiler = require("tfunk").Compiler({
     }
 });
 
-var log = compiler.compile;
+//
+var log = function (level, msg, vars) {
+
+    var prefix = "";
+    if (level === "debug" && logLevel === "debug") {
+        prefix = tfunk("[%Cmagenta:CoderBlog%R:%Ccyan:DEBUG%R] - ");
+    }
+    console.log(prefix + msg);
+};
+
+/**
+ * @param level
+ */
+module.exports.setLogLevel = function (level) {
+    logLevel = level;
+};
 
 var cache    = {};
 var posts    = [];
 var pages    = [];
 
 var defaults = {
-    configFile: "./_config.yml"
+    configFile: "./_config.yml",
+    markdown: true
 };
+
+module.exports.cache = cache;
 
 /**
  * Make Dust templates retain whitespace
@@ -43,10 +82,12 @@ function getFile(filePath) {
     filePath = path.resolve(filePath.replace(/^\./, ""));
 
     if (cache[filePath]) {
+        log("debug", "Cache access for: " + filePath);
         return cache[filePath];
     }
 
     try {
+        log("debug", "File System access for: " + filePath);
         content = fs.readFileSync(filePath, "utf-8");
         cache[filePath] = content;
         return content;
@@ -55,13 +96,6 @@ function getFile(filePath) {
         return "";
     }
 }
-
-/**
- *
- */
-module.exports.populateCache = function (key, value) {
-    cache[key] = value;
-};
 
 /**
  * @param arguments
@@ -108,15 +142,6 @@ function yeildContent(current, content) {
 function compile(config, data, cb) {
 
     var current     = getFile(getLayoutPath(data.page.layout));
-    current         = addIncludes(current);
-
-    var postContent = addIncludes(data.parsedContent.main);
-    postContent     = processMardownFile(postContent);
-    current         = yeildContent(current, postContent);
-
-    // Add any more includes from
-    current         = addIncludes(current);
-
     data.config = config;
 
     makeFile(current, data).then(cb);
@@ -198,8 +223,9 @@ function getData(string, data) {
 
     var parsedContents = readFrontMatter(string);
     data.page          = parsedContents.front;
+    data.content       = parsedContents.main;
     data.parsedContent = parsedContents;
-
+    data.markdown      = processMardownFile(data.content);
     data.posts         = preparePosts(posts);
     data.pages         = pages;
 
@@ -220,11 +246,24 @@ function getYaml(file) {
 module.exports.getYaml = getYaml;
 
 module.exports.clearCache = function () {
+    log("debug", "Clearing all caches, (posts, pages, includes, partials)");
     cache = {};
     posts = [];
     pages = [];
 };
 
+/**
+ *
+ * @param out
+ * @param config
+ */
+function prepareContent(out, data, config) {
+    if (_.isUndefined(data.page.markdown) || data.page.markdown === false) {
+        return processMardownFile(out);
+    } else {
+        return out;
+    }
+}
 /**
  * Compile a single file
  * @param string
@@ -241,13 +280,31 @@ module.exports.compileOne = function (string, config, cb) {
 
         data = getData(string, data);
 
-        compile(config, data, function (out) {
-            cb(out);
-        });
+        makeFile(data.content, data).then(render);
+
+        function render(out) {
+
+            exports.populateCache("content", prepareContent(out, data, config));
+
+            compile(config, data, function (out) {
+                cb(out);
+            });
+        }
+
     } else {
-        // Probably just copy this file.
         cb(string);
     }
+};
+
+
+
+/**
+ *
+ */
+module.exports.populateCache = function (key, value) {
+    log("debug", "Adding to cache: " + key);
+    dust.loadSource(dust.compile(value, key));
+    cache[key] = value;
 };
 
 /**

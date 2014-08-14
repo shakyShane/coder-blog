@@ -1,80 +1,124 @@
 var _             = require("lodash");
 var multiline     = require("multiline");
 var assert        = require("chai").assert;
-var coderBlog     = require("../coder-blog");
+var dust          = require("dustjs-linkedin");
+dust.cache        = {};
+dust.isDebug = true;
+dust.optimizers.format = function(ctx, node) { return node; };
 
-var layout1 = multiline(function(){/*
+var coderBlog = require("../coder-blog");
+coderBlog.setLogLevel("debug");
+
+var postLayout = multiline.stripIndent(function(){/*
+ <!DOCTYPE html>
+ <html>
+ {>head /}
+ <body class="post">
+ {>content /}
+ </body>
+ </html>
+ */});
+
+var pageLayout = multiline.stripIndent(function(){/*
 <!DOCTYPE html>
 <html>
-<head></head>
-<body>
-{ yield: content }
+{>head /}
+<body class="page">
+{>content /}
 </body>
 </html>
+*/});
+
+var post1 = multiline.stripIndent(function(){/*
+ ---
+ layout: post-test
+ title: "Function Composition in Javascript."
+ date: 2013-11-13 20:51:39
+ ---
+
+ Hi there {page.title}
+
  */});
 
 describe("Processing a file", function(){
 
     beforeEach(function () {
         coderBlog.clearCache();
-        coderBlog.populateCache("/_layouts/post-test.html", layout1);
+
+        // Add layouts to cache
+        coderBlog.populateCache("/_layouts/post-test.html", postLayout);
+        coderBlog.populateCache("/_layouts/page-test.html", pageLayout);
+
+        // Add HEAD section to cache
+        coderBlog.populateCache("head", "<head><title>{page.title} {site.sitename}</title></head>");
     });
 
     it("Uses layout", function(done) {
 
-        var post1 = multiline.stripIndent(function(){/*
-         ---
-         layout: post-test
-         title: "Function Composition in Javascript."
-         date: 2013-11-13 20:51:39
-         ---
-
-         #shane
-         */});
-
-        coderBlog.compileOne(post1, {}, function (out) {
-            assert.isTrue(_.contains(out, '<h1 id="shane">shane</h1>'));
+        coderBlog.compileOne(post1, {siteConfig: {sitename: "({shakyShane})"}}, function (out) {
+            assert.isTrue(_.contains(out, 'Function Composition in Javascript'));
+            assert.isTrue(_.contains(out, '({shakyShane})'));
             done();
         });
     });
 
-    it("does includes", function(done) {
+    it("Knows about posts", function(done) {
 
-        var post1 = multiline.stripIndent(function(){/*
+        var index = multiline.stripIndent(function(){/*
          ---
-         layout: post-test
-         title: "Function Composition in Javascript."
-         date: 2013-11-13 20:51:39
+         layout: page-test
+         title: "Homepage"
+         markdown: "false"
          ---
 
-         { include: shane.html }
+         #Welcome to my blog. {?posts}I have written before..{/posts}
          */});
 
-        coderBlog.populateCache("/_includes/shane.html", "some content from include");
-        coderBlog.compileOne(post1, {}, function (out) {
-            assert.isTrue(_.contains(out, 'some content from include'));
+
+        // NO POSTS ADDED
+        coderBlog.addPage("index.html", index);
+        coderBlog.compileOne(index, {}, function (out) {
+            assert.isTrue(_.contains(out, '#Welcome to my blog.'));
+            assert.isFalse(_.contains(out, 'I have written before..'));
             done();
         });
     });
-    it("does recursive includes", function(done) {
 
-        var innerInclude = "Katz are koolz";
-        var include      = "{ include: katz.html } - true";
+    it("Knows about posts and pages (when they are added)", function(done) {
 
-        var post1 = multiline.stripIndent(function(){/*
+        var post2 = multiline.stripIndent(function(){/*
          ---
          layout: post-test
-         title: "Function Composition in Javascript."
+         title: "Blogging is coolio"
          date: 2013-11-13 20:51:39
          ---
 
-         { include: shane.html }
+         #{page.title}
          */});
 
-        coderBlog.populateCache("/_includes/shane.html", include);
-        coderBlog.populateCache("/_includes/katz.html", innerInclude);
-        coderBlog.compileOne(post1, {}, function (out) {
-            assert.isTrue(_.contains(out, '<p>Katz are koolz - true</p>'));
+        var index = multiline.stripIndent(function(){/*
+         ---
+         layout: page-test
+         title: "Homepage"
+         ---
+
+         #Welcome to my blog
+         {#posts}
+         [{title}](#)
+         {/posts}
+         */});
+
+
+        // NO POSTS ADDED
+        coderBlog.addPost("post1.html", post1);
+        coderBlog.addPost("post2.html", post2);
+        coderBlog.addPage("index.html", index);
+        coderBlog.compileOne(index, {}, function (out) {
+
+            assert.isTrue(_.contains(out, '<h1 id="welcome-to-my-blog">Welcome to my blog</h1>'));
+            assert.isTrue(_.contains(out, '<p><a href="#">Function Composition in Javascript.</a></p>'));
+            assert.isTrue(_.contains(out, '<p><a href="#">Blogging is coolio</a></p>'));
+
             done();
         });
     });
