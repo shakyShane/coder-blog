@@ -6,6 +6,6 @@ bodyClass: "shane"
 
 Hi there, welcome to my fast blog, dude, do you like it, bro?
 
-{#posts}
-    {title}
-{/posts}
+<ul>{#posts}
+    <li>{$idx} - {title}</li>{/posts}
+</ul>

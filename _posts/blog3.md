@@ -1,9 +1,8 @@
 ---
 layout: post
-title:  "Lodash is cool"
+title:  "Lodash is pretty cool"
 date:   2013-11-13 20:51:39
 categories: javascript
-markdown: "false"
 ---
 
-#Should not render markdown
+#Should render markdown
