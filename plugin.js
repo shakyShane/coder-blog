@@ -62,7 +62,7 @@ module.exports = function (config) {
         Q.all(promises).then(function () {
             coderBlog.clearCache();
             console.timeEnd("coderBlog");
-            cb(null);
+            cb();
         });
     });
 };
@@ -71,7 +71,7 @@ module.exports = function (config) {
  *
  */
 function buildOne(stream, contents, fileName, config) {
-    var promise = Q.defer();
+    var deferred = Q.defer();
     coderBlog.compileOne(contents, config, function (out) {
         stream.push(new File({
             cwd:  "./",
@@ -79,9 +79,9 @@ function buildOne(stream, contents, fileName, config) {
             path: fileName,
             contents: new Buffer(out)
         }));
-        promise.resolve();
+        deferred.resolve(out);
     });
-    return promise;
+    return deferred.promise;
 }
 
 /**

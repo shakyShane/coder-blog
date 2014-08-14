@@ -7,4 +7,4 @@ categories: javascript
 
 ##This is a javascript snippet
 
-{ include: kitten.html }
+{>"/_includes/kitten.html" /}

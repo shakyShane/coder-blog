@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
 
-{ include: head.html }
+{>"/_includes/head.html" /}
 
-<body>
+<body class="post">
 
-{ include: header.html }
+<main class="page-content">
+    <div class="container">
+        {>content /}
+    </div>
+</main>
 
-{ yield: content }
-
-{ include: footer.html }
+{>"/_includes/footer.html" /}
 
 </body>
 </html>

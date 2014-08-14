@@ -8,6 +8,7 @@ var _        = require("lodash");
  * @type {dust|exports}
  */
 var dust     = require("dustjs-linkedin");
+dust.isDebug = true;
 
 /**
  * Yaml parsing
@@ -42,7 +43,10 @@ var log = function (level, msg, vars) {
     if (level === "debug" && logLevel === "debug") {
         prefix = tfunk("[%Cmagenta:CoderBlog%R:%Ccyan:DEBUG%R] - ");
     }
-    console.log(prefix + msg);
+
+    if (logLevel === "debug") {
+        console.log(prefix + msg);
+    }
 };
 
 /**
