@@ -15,6 +15,7 @@ var cp           = require("child_process");
 var rev          = require("gulp-rev");
 var awspublish   = require('gulp-awspublish');
 var yaml         = require('js-yaml');
+var path         = require("path");
 
 var configPath   = "./_config.yml";
 var config       = yaml.safeLoad(fs.readFileSync(configPath, "utf-8"));
@@ -119,4 +120,21 @@ gulp.task("build-blog", function () {
     return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "index.html"])
         .pipe(coderBlog({env: "dev"}))
         .pipe(gulp.dest("_site"));
+});
+
+/**
+* Default task
+*/
+gulp.task("high", function () {
+
+    return gulp.src(["_scss/highlighting/*.css"])
+        .pipe(through2.obj(function (file, enc, cb) {
+
+            var filename = path.basename(file.path);
+            var prefix   = file.path.replace(filename, "");
+            file.path = prefix + "_" + filename.replace(/css$/, "scss");
+            this.push(file);
+            cb();
+        }))
+        .pipe(gulp.dest("_scss/highlighting"));
 });

@@ -211,4 +211,27 @@ describe("Processing a file", function(){
             done();
         });
     });
+
+    it("Allows highlighting", function(done) {
+
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Blogging is coolio"
+         date: 2013-11-13 20:51:39
+
+         ---
+
+         ```js
+         var shane;
+         ```
+
+         */});
+
+        // NO POSTS ADDED
+        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (out) {
+            assert.isTrue(_.contains(out, '<span class="hljs-keyword">var</span>'));
+            done();
+        });
+    });
 });

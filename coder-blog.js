@@ -20,7 +20,16 @@ var yaml     = require("js-yaml");
  * Markdown parsing
  * @type {marked|exports}
  */
-var marked   = require('marked');
+var marked    = require('marked');
+
+/**
+ *
+ */
+marked.setOptions({
+    highlight: function (code, lang, callback) {
+        return require('highlight.js').highlightAuto(code).value;
+    }
+});
 
 /**
  * tfunk for terminal colours
