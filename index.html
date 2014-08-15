@@ -6,6 +6,9 @@ bodyClass: "shane"
 
 Hi there, welcome to my fast blog, dude, do you like it, bro?
 
-<ul>{#posts}
-    <li>{$idx} - {title}</li>{/posts}
+<ul class="nav posts">{#posts}
+    <li>
+        <span class="post-date">{date}</span>
+        <a class="post-link" href="{url}">{title}</a>{/posts}
+    </li>
 </ul>

@@ -46,8 +46,8 @@ describe("Processing a file", function(){
         coderBlog.clearCache();
 
         // Add layouts to cache
-        coderBlog.populateCache("/_layouts/post-test.html", postLayout);
-        coderBlog.populateCache("/_layouts/page-test.html", pageLayout);
+        coderBlog.populateCache("layouts/post-test.html", postLayout);
+        coderBlog.populateCache("layouts/page-test.html", pageLayout);
 
         // Add HEAD section to cache
         coderBlog.populateCache("head", "<head><title>{page.title} {site.sitename}</title></head>");
@@ -143,12 +143,12 @@ describe("Processing a file", function(){
         });
     });
 
-    it.only("Setting short keys, but still allow paths for includes in cache", function(done) {
+    it("Setting short keys, but still allow paths for includes in cache", function(done) {
 
         var post2 = multiline.stripIndent(function(){/*
          ---
          layout: post-test
-         title: "Blogging is coolio"
+         title: "Blog Title"
          date: 2013-11-13 20:51:39
          ---
 
@@ -157,10 +157,57 @@ describe("Processing a file", function(){
          */});
 
         // NO POSTS ADDED
-        coderBlog.populateCache("/_includes/button.tmpl.html", "<button>{text}</button>");
+        coderBlog.populateCache("some/Random/path/_includes/button.tmpl.html", "<button>{params.text}</button>");
         coderBlog.compileOne(post2, {}, function (out) {
-            console.log(out);
             assert.isTrue(_.contains(out, '<button>Sign up</button>'));
+            done();
+        });
+    });
+
+    it("Allows access to include params via 'params' namespace to deal with any conflicts", function(done) {
+
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Blogging is coolio"
+         date: 2013-11-13 20:51:39
+         markdown: "false"
+         ---
+
+         {#inc tmpl="button" text="Sign Up" /}
+
+         {site.title}
+
+         */});
+
+        // NO POSTS ADDED
+        coderBlog.populateCache("_includes/button.tmpl.html", "<button>{params.text}</button>");
+        coderBlog.compileOne(post2, {siteConfig: {title: "Blog Name"}}, function (out) {
+            console.log(out);
+            assert.isTrue(_.contains(out, '<button>Sign Up</button>'));
+            assert.isTrue(_.contains(out, 'Blog Name'));
+            done();
+        });
+    });
+
+
+    it("Allows includes that are not in the cache", function(done) {
+
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Blogging is coolio"
+         date: 2013-11-13 20:51:39
+         markdown: "false"
+         ---
+
+         {#inc tmpl="snippet" name="Title: " /}
+
+         */});
+
+        // NO POSTS ADDED
+        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (out) {
+            assert.isTrue(_.contains(out, 'var shane = "hi";'));
             done();
         });
     });

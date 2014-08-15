@@ -36,16 +36,14 @@ var compiler = new tfunk.Compiler({
     }
 });
 
+var debugPrefix = tfunk("[%Cmagenta:CoderBlog%R:%Ccyan:DEBUG%R] - ");
+
 //
 var log = function (level, msg, vars) {
 
     var prefix = "";
-    if (level === "debug" && logLevel === "debug") {
-        prefix = tfunk("[%Cmagenta:CoderBlog%R:%Ccyan:DEBUG%R] - ");
-    }
-
-    if (logLevel === "debug") {
-        console.log(prefix + msg);
+    if ((level === "debug" || level === "warn") && logLevel === "debug") {
+        console.log(debugPrefix + msg);
     }
 };
 
@@ -81,32 +79,53 @@ dust.optimizers.format = function(ctx, node) { return node; };
  */
 function getFile(filePath) {
 
+    log("debug", "Getting file: " + filePath);
+
     var content;
+    var cachePath;
 
-    filePath = path.resolve(filePath.replace(/^\./, ""));
+    filePath  = path.resolve(filePath);
+    cachePath = filePath.replace(process.cwd(), "").replace(/^\//, "");
 
-    if (cache[filePath]) {
-        log("debug", "Cache access for: " + filePath);
-        return cache[filePath];
+    var cacheKey = Object.keys(cache).filter(function (key) {
+        return _.contains(cachePath, key);
+    });
+
+    cacheKey = cacheKey.length ? cacheKey[0] : false;
+
+    if (cacheKey && cache[cacheKey]) {
+        log("debug", tfunk("%Cgreen:Cache access%R for: " + cacheKey));
+        return cache[cacheKey];
+    } else {
+        log("debug", "Not found in cache: " + cachePath);
     }
 
     try {
-        log("debug", "File System access for: " + filePath);
+        log("debug", tfunk("%Cyellow:File System%R access for: " + filePath));
         content = fs.readFileSync(filePath, "utf-8");
-        cache[filePath] = content;
+        exports.populateCache(filePath, content);
         return content;
     } catch (e) {
-        console.log(log("%Cred:[warn] %R%s not found - %s"), filePath, e);
+        log("warn",
+            tfunk("%Cred:[warn]%R could not access - %s"
+                .replace("%s", e.path)
+            )
+        );
         return "";
     }
 }
 
 /**
  *
- *
  */
 function isInclude(path) {
     return path.match(/([./])?_includes/);
+}
+/**
+ *
+ */
+function isLayout(path) {
+    return path.match(/([./])?_layouts/);
 }
 
 /**
@@ -114,7 +133,7 @@ function isInclude(path) {
  * @param name
  */
 function getIncludePath(name) {
-    return "./_includes/" + name;
+    return "_includes/" + name + ".html";
 }
 
 /**
@@ -122,30 +141,9 @@ function getIncludePath(name) {
  * @param name
  */
 function getLayoutPath(name) {
-    return "./_layouts/" + (name || "default") + ".html";
+    return "_layouts/" + (name || "default") + ".html";
 }
 
-/**
- * @param current
- * @param arguments
- * @returns {*|XML|string|void}
- */
-function addIncludes(current) {
-    return current.replace(/{ include: (.+?) }/g, function () {
-        return addIncludes(getFile(getIncludePath(arguments[1])));
-    });
-}
-
-/**
- * @param current
- * @param content
- * @returns {*|XML|string|void}
- */
-function yeildContent(current, content) {
-    return current.replace(/{ yield: (.+?) }/, function () {
-        return content;
-    });
-}
 /**
  * @param config
  * @param data
@@ -280,18 +278,6 @@ function prepareContent(out, data, config) {
 }
 
 /**
- * @returns {boolean}
- */
-function isInCache(value, key) {
-    if (isInclude(key)) {
-        if (cache[key]) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
  * @returns {Function}
  */
 function getIncludeResolver(data) {
@@ -302,25 +288,27 @@ function getIncludeResolver(data) {
 
         var match;
 
-        if (match = _.filter(cache, function (value, item) {
+        match = _.filter(cache, function (value, item) {
             return item === params.tmpl;
-        }))
+        });
 
-        if (!match) {
-            console.log("not found in any caches");
+        if (!match.length) {
+            log("debug", "'" + params.tmpl + "' not found in any caches");
         }
 
-        return chunk.partial(params.tmpl, dust.makeBase(params));
+        getFile(getIncludePath(params.tmpl));
 
-//        console.log(match[0]);
+        data.params = {};
 
-//        console.log(chunk.render(match[0], context));
-//        chunk.write(match[0]);
+        _.each(params, function (value, key) {
+            if (_.isUndefined(data[key])) {
+                data[key] = value;
+            }
 
-        return chunk;
+            data.params[key] = value;
+        });
 
-//        if (Object.keys(cache).some(isInCache)) {
-//        }
+        return chunk.partial(params.tmpl, dust.makeBase(data));
     }
 }
 
@@ -378,7 +366,16 @@ module.exports.populateCache = function (key, value) {
     if (isInclude(key)) {
 
         if (shortKey = makeShortKey(key)) {
-            log("debug", "Adding INCLUDE to cache via short key: " + key);
+            log("debug", "Adding to cache: " + shortKey);
+            dust.loadSource(dust.compile(value, shortKey));
+            cache[shortKey] = value;
+        }
+    }
+
+    if (isLayout(key)) {
+
+        if (shortKey = makeShortKey(key)) {
+            log("debug", "Adding to cache: " + shortKey);
             dust.loadSource(dust.compile(value, shortKey));
             cache[shortKey] = value;
         }
