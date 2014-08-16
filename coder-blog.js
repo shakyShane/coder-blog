@@ -23,13 +23,9 @@ var yaml     = require("js-yaml");
 var marked    = require('marked');
 
 /**
- *
+ * Highlight.js for default highlighting styles
  */
-marked.setOptions({
-    highlight: function (code, lang, callback) {
-        return require('highlight.js').highlightAuto(code).value;
-    }
-});
+var highlight  = require('highlight.js');
 
 /**
  * tfunk for terminal colours
@@ -215,8 +211,27 @@ module.exports.makeFilename = makeFilename;
  * @param string
  * @returns {*|exports}
  */
-function processMardownFile(string) {
+function processMardownContent(string, config) {
+
+    marked.setOptions({
+        highlight: (function () {
+            return config.markdown && config.markdown.highlight
+                ? config.markdown.highlight
+                : highlightSnippet
+        })()
+    });
+
     return marked(string);
+}
+
+/**
+ * @param code
+ * @param lang
+ * @param callback
+ * @returns {*}
+ */
+function highlightSnippet(code, lang, callback) {
+    return highlight.highlightAuto(code).value;
 }
 
 /**
@@ -255,21 +270,26 @@ function preparePosts(posts) {
 }
 
 /**
- * @param string
+ * This set's up the 'data' object with all the info any templates/includes might need.
+ * @param {String} content
+ * @param {Object} config - Site config
+ * @param {Object} data - Any initial data
  */
-function getData(string, data) {
+function getData(content, data, config) {
 
-    var parsedContents  = readFrontMatter(string);
-    data.page           = parsedContents.front;
-    data.content        = parsedContents.main;
-    data.parsedContent  = parsedContents;
-    data.markdown       = processMardownFile(data.content);
-    data.posts          = preparePosts(posts);
-    data.pages          = pages;
-
+    var parsedContents  = readFrontMatter(content);
     var includeResolver = getCacheResolver(data, "include");
     var snippetResolver = getCacheResolver(data, "snippet");
 
+    data.page           = parsedContents.front;
+    data.post           = parsedContents.front;
+    data.content        = parsedContents.main;
+    data.parsedContent  = parsedContents;
+    data.markdown       = processMardownContent(data.content, config);
+    data.posts          = preparePosts(posts);
+    data.pages          = pages;
+
+    // Helper functions
     data.inc            = includeResolver;
     data.include        = includeResolver;
     data.highlight      = snippetResolver;
@@ -305,7 +325,7 @@ module.exports.clearCache = function () {
  */
 function prepareContent(out, data, config) {
     if (_.isUndefined(data.page.markdown) || data.page.markdown === false) {
-        return processMardownFile(out);
+        return processMardownContent(out, config);
     } else {
         return out;
     }
@@ -317,8 +337,6 @@ function prepareContent(out, data, config) {
 function wrapSnippet(content) {
     return "```{params.lang}\n" + content + "\n```";
 }
-
-
 
 /**
  * @param path
@@ -352,6 +370,7 @@ function getInclude(path, data, chunk) {
         dust.makeBase(data)
     );
 }
+
 /**
  * @returns {Function}
  */
@@ -361,17 +380,7 @@ function getCacheResolver(data, type) {
 
         log("debug", "Looking for '" + params.src + "' in the cache.");
 
-        var match;
-        var cachePath;
-
-        match = _.filter(cache, function (value, item) {
-            return item === params.src;
-        });
-
-        if (!match.length) {
-            log("debug", "'" + params.src + "' not found in any caches");
-        }
-
+        // params always reset for every include/snippet
         data.params = {};
 
         _.each(params, function (value, key) {
@@ -401,7 +410,7 @@ module.exports.compileOne = function (string, config, cb) {
 
     if (hasFrontMatter(string)) {
 
-        data     = getData(string, data);
+        data = getData(string, data, config);
 
         makeFile(data.content, data).then(render);
 
@@ -451,17 +460,24 @@ module.exports.populateCache = function (key, value) {
 };
 
 /**
- * Try to retrieve an item from the cache
+ * Check the cache for existing matches
+ * @param key
+ * @returns {*}
  */
-module.exports.checkCache = function (key) {
+function checkCache(key) {
     return cache[key]
         ? cache[key]
         : (function () {
-            return _.find(cache, function (value, cacheKey) {
-                return _.contains(cacheKey, key);
-            });
-        })();
-};
+        return _.find(cache, function (value, cacheKey) {
+            return _.contains(cacheKey, key);
+        });
+    })();
+}
+
+/**
+ * Try to retrieve an item from the cache
+ */
+module.exports.checkCache = checkCache;
 
 /**
  * @param key
