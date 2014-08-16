@@ -52,6 +52,9 @@ var log = function (level, msg, vars) {
     }
 };
 
+module.exports.log    = log;
+module.exports.logger = compiler;
+
 /**
  * @param level
  */
@@ -170,14 +173,13 @@ function getLayoutPath(name) {
 /**
  * @param config
  * @param data
- * @param cb
  */
-function compile(config, data, cb) {
+function compile(config, data) {
 
     var current     = getFile(getLayoutPath(data.page.layout));
     data.config = config;
 
-    makeFile(current, data).then(cb);
+    return makeFile(current, data);
 }
 
 /**
@@ -193,7 +195,11 @@ function makeFile(template, data) {
     dust.compileFn(template, id, false);
 
     dust.render(id, data, function (err, out) {
-        deferred.resolve(out);
+        if (err) {
+            deferred.reject(err);
+        } else {
+            deferred.resolve(out);
+        }
     });
 
     return deferred.promise;
@@ -408,23 +414,31 @@ module.exports.compileOne = function (string, config, cb) {
         site: config.siteConfig || getYaml(defaults.configFile)
     };
 
+    if (!_.isUndefined(config.logLevel)) {
+        exports.setLogLevel(config.logLevel);
+    }
+
     if (hasFrontMatter(string)) {
 
         data = getData(string, data, config);
 
-        makeFile(data.content, data).then(render);
+        makeFile(data.content, data)
+            .then(render)
+            .catch(cb);
 
         function render(out) {
 
             exports.populateCache("content", prepareContent(out, data, config));
 
-            compile(config, data, function (out) {
-                cb(out);
-            });
+            compile(config, data)
+                .then(function (out) {
+                    cb(null, out);
+                })
+                .catch(cb);
         }
 
     } else {
-        cb(string);
+        cb(null, string);
     }
 };
 

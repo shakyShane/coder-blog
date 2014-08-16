@@ -5,6 +5,8 @@ var coderBlog = require("./coder-blog");
 var merge     = require("opt-merger").merge;
 var Q         = require("q");
 
+var PLUGIN_NAME = "gulp-coder-blog";
+
 var defaults = {
     configFile: "./_config.yml",
     transformSiteConfig: transformSiteConfig,
@@ -59,11 +61,15 @@ module.exports = function (config) {
             promises.push(buildOne(stream, files[key], fileName, config));
         });
 
-        Q.all(promises).then(function () {
+        Q.all(promises).then(function (err, out) {
+            console.log(arguments);
             coderBlog.clearCache();
             console.timeEnd("coderBlog");
             cb();
-        });
+        }).catch(function (err) {
+            gutil.log(coderBlog.logger.compile("%Cwarn:" + err));
+            cb(null);
+        })
     });
 };
 
@@ -71,16 +77,25 @@ module.exports = function (config) {
  *
  */
 function buildOne(stream, contents, fileName, config) {
+
     var deferred = Q.defer();
-    coderBlog.compileOne(contents, config, function (out) {
-        stream.push(new File({
-            cwd:  "./",
-            base: "./",
-            path: fileName,
-            contents: new Buffer(out)
-        }));
-        deferred.resolve(out);
+
+    coderBlog.compileOne(contents, config, function (err, out) {
+
+        if (err) {
+            deferred.reject(err);
+        } else {
+            stream.push(new File({
+                cwd:  "./",
+                base: "./",
+                path: fileName,
+                contents: new Buffer(out)
+            }));
+
+            deferred.resolve(out);
+        }
     });
+
     return deferred.promise;
 }
 

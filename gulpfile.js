@@ -117,8 +117,9 @@ gulp.task("build", ['rev:css'], function () {
  */
 gulp.task("build-blog", function () {
 
-    return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "index.html"])
-        .pipe(coderBlog({env: "dev"}))
+//    return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "index.html"])
+    return gulp.src(["_posts/blog1.md", "_includes/**/*.html", "_layouts/*.html"])
+        .pipe(coderBlog({env: "dev", logLevel: "debug"}))
         .pipe(gulp.dest("_site"));
 });
 

@@ -55,7 +55,7 @@ describe("Processing a file", function(){
 
     it("Uses layout", function(done) {
 
-        coderBlog.compileOne(post1, {siteConfig: {sitename: "({shakyShane})"}}, function (out) {
+        coderBlog.compileOne(post1, {siteConfig: {sitename: "({shakyShane})"}}, function (err, out) {
             assert.isTrue(_.contains(out, 'Function Composition in Javascript'));
             assert.isTrue(_.contains(out, '({shakyShane})'));
             done();
@@ -77,7 +77,7 @@ describe("Processing a file", function(){
 
         // NO POSTS ADDED
         coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, function (out) {
+        coderBlog.compileOne(index, {}, function (err, out) {
             assert.isTrue(_.contains(out, '#Welcome to my blog.'));
             assert.isFalse(_.contains(out, 'I have written before..'));
             done();
@@ -113,7 +113,7 @@ describe("Processing a file", function(){
         coderBlog.addPost("post1.html", post1);
         coderBlog.addPost("post2.html", post2);
         coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, function (out) {
+        coderBlog.compileOne(index, {}, function (err, out) {
 
             assert.isTrue(_.contains(out, '<h1 id="welcome-to-my-blog">Welcome to my blog</h1>'));
             assert.isTrue(_.contains(out, '<p><a href="#">Function Composition in Javascript.</a></p>'));
@@ -137,7 +137,7 @@ describe("Processing a file", function(){
 
         // NO POSTS ADDED
         coderBlog.populateCache("/_includes/button.tmpl.html", "<button>{text}</button>");
-        coderBlog.compileOne(post2, {}, function (out) {
+        coderBlog.compileOne(post2, {}, function (err, out) {
             assert.isTrue(_.contains(out, '<button>Sign Up</button>'));
             done();
         });
@@ -158,7 +158,7 @@ describe("Processing a file", function(){
 
         // NO POSTS ADDED
         coderBlog.populateCache("some/Random/path/_includes/button.html", "<button>{params.text}</button>");
-        coderBlog.compileOne(post2, {}, function (out) {
+        coderBlog.compileOne(post2, {}, function (err, out) {
             assert.isTrue(_.contains(out, '<button>Sign up</button>'));
             done();
         });
@@ -182,7 +182,7 @@ describe("Processing a file", function(){
 
         // NO POSTS ADDED
         coderBlog.populateCache("_includes/button.tmpl.html", "<button>{params.text}</button>");
-        coderBlog.compileOne(post2, {siteConfig: {title: "Blog Name"}}, function (out) {
+        coderBlog.compileOne(post2, {siteConfig: {title: "Blog Name"}}, function (err, out) {
             assert.isTrue(_.contains(out, '<button>Sign Up</button>'));
             assert.isTrue(_.contains(out, 'Blog Name'));
             done();
@@ -205,7 +205,7 @@ describe("Processing a file", function(){
          */});
 
         // NO POSTS ADDED
-        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (out) {
+        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.isTrue(_.contains(out, 'var shane = "hi";'));
             done();
         });
@@ -228,7 +228,7 @@ describe("Processing a file", function(){
          */});
 
         // NO POSTS ADDED
-        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (out) {
+        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.isTrue(_.contains(out, '<span class="hljs-keyword">var</span>'));
             done();
         });
@@ -253,7 +253,7 @@ describe("Processing a file", function(){
 
         coderBlog.populateCache("_snippets/function2.js", 'var name = "{params.name}"');
 
-        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (out) {
+        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.isTrue(_.contains(out, '<button class="button button--primary">Sign up</button>'));
             assert.isTrue(_.contains(out, '<code class="lang-js"><span class="hljs-keyword">var</span> name = <span class="hljs-string">"shane"</span>'));
             done();
