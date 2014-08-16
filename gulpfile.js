@@ -36,6 +36,7 @@ gulp.task("browser-sync", function () {
 gulp.task("default", ["build-blog", "sass", "browser-sync"], function () {
     gulp.watch([
         "_layouts/**/*.html",
+        "_includes/**/*.html",
         "_posts/*.md",
         "_snippets/**/*",
         "*.yml",

@@ -1,1 +1,2 @@
-var shane = "kittie";
+var language = "{params.lang}";
+var speed    = "{params.speed}";
