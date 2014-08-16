@@ -7,12 +7,11 @@ dust.isDebug = true;
 dust.optimizers.format = function(ctx, node) { return node; };
 
 var coderBlog = require("../coder-blog");
-coderBlog.setLogLevel("debug");
 
 var postLayout = multiline.stripIndent(function(){/*
  <!DOCTYPE html>
  <html>
- {>head /}
+ {>"includes/head" /}
  <body class="post">
  {>content /}
  </body>
@@ -22,7 +21,7 @@ var postLayout = multiline.stripIndent(function(){/*
 var pageLayout = multiline.stripIndent(function(){/*
 <!DOCTYPE html>
 <html>
-{>head /}
+ {>"includes/head" /}
 <body class="page">
 {>content /}
 </body>
@@ -46,11 +45,11 @@ describe("Processing a file", function(){
         coderBlog.clearCache();
 
         // Add layouts to cache
-        coderBlog.populateCache("layouts/post-test.html", postLayout);
-        coderBlog.populateCache("layouts/page-test.html", pageLayout);
+        coderBlog.populateCache("_layouts/post-test.html", postLayout);
+        coderBlog.populateCache("_layouts/page-test.html", pageLayout);
 
         // Add HEAD section to cache
-        coderBlog.populateCache("head", "<head><title>{page.title} {site.sitename}</title></head>");
+        coderBlog.populateCache("_includes/head", "<head><title>{page.title} {site.sitename}</title></head>");
     });
 
     it("Uses layout", function(done) {
@@ -132,7 +131,7 @@ describe("Processing a file", function(){
          date: 2013-11-13 20:51:39
          ---
 
-         {>button text="Sign Up" /}
+         {>"includes/button.tmpl.html" text="Sign Up" /}
          */});
 
         // NO POSTS ADDED
@@ -152,12 +151,12 @@ describe("Processing a file", function(){
          date: 2013-11-13 20:51:39
          ---
 
-         {#inc tmpl="button" text="Sign up"/}
+         {#inc src="button" text="Sign up"/}
 
          */});
 
         // NO POSTS ADDED
-        coderBlog.populateCache("some/Random/path/_includes/button.tmpl.html", "<button>{params.text}</button>");
+        coderBlog.populateCache("some/Random/path/_includes/button.html", "<button>{params.text}</button>");
         coderBlog.compileOne(post2, {}, function (out) {
             assert.isTrue(_.contains(out, '<button>Sign up</button>'));
             done();
@@ -174,7 +173,7 @@ describe("Processing a file", function(){
          markdown: "false"
          ---
 
-         {#inc tmpl="button" text="Sign Up" /}
+         {#inc src="button.tmpl" text="Sign Up" /}
 
          {site.title}
 
@@ -183,7 +182,6 @@ describe("Processing a file", function(){
         // NO POSTS ADDED
         coderBlog.populateCache("_includes/button.tmpl.html", "<button>{params.text}</button>");
         coderBlog.compileOne(post2, {siteConfig: {title: "Blog Name"}}, function (out) {
-            console.log(out);
             assert.isTrue(_.contains(out, '<button>Sign Up</button>'));
             assert.isTrue(_.contains(out, 'Blog Name'));
             done();
@@ -201,7 +199,7 @@ describe("Processing a file", function(){
          markdown: "false"
          ---
 
-         {#inc tmpl="snippet" name="Title: " /}
+         {#inc src="snippet" name="Title: " /}
 
          */});
 
@@ -231,6 +229,31 @@ describe("Processing a file", function(){
         // NO POSTS ADDED
         coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (out) {
             assert.isTrue(_.contains(out, '<span class="hljs-keyword">var</span>'));
+            done();
+        });
+    });
+
+    it("Allows highlighting via a helper", function(done) {
+
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Highlight Helper"
+         date: 2013-11-13 20:51:39
+         ---
+
+         {page.title}
+
+         {#include src="button" /}
+
+         {#highlight src="function2.js" name="shane"/}
+
+         */});
+
+        coderBlog.populateCache("_snippets/function2.js", 'var name = "{params.name}"');
+
+        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (out) {
+            assert.isTrue(_.contains(out, '<span class="hljs-keyword">var</span> name = <span class="hljs-string">"shane"</span>'));
             done();
         });
     });

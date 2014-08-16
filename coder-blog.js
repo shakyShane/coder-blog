@@ -51,7 +51,7 @@ var debugPrefix = tfunk("[%Cmagenta:CoderBlog%R:%Ccyan:DEBUG%R] - ");
 var log = function (level, msg, vars) {
 
     var prefix = "";
-    if ((level === "debug" || level === "warn") && logLevel === "debug") {
+    if ((level === "debug" || level === "warn") && (logLevel === "debug")) {
         console.log(debugPrefix + msg);
     }
 };
@@ -83,36 +83,40 @@ module.exports.cache = cache;
 dust.optimizers.format = function(ctx, node) { return node; };
 
 /**
+ *
  * @param filePath
+ * @returns {string}
+ */
+function makeFsPath(filePath) {
+    return process.cwd() + "/_" + filePath;
+}
+
+/**
+ * @param filePath
+ * @param [transform]
  * @returns {*}
  */
-function getFile(filePath) {
+function getFile(filePath, transform) {
 
     log("debug", "Getting file: " + filePath);
 
     var content;
-    var cachePath;
 
-    filePath  = path.resolve(filePath);
-    cachePath = filePath.replace(process.cwd(), "").replace(/^\//, "");
-
-    var cacheKey = Object.keys(cache).filter(function (key) {
-        return _.contains(cachePath, key);
-    });
-
-    cacheKey = cacheKey.length ? cacheKey[0] : false;
-
-    if (cacheKey && cache[cacheKey]) {
-        log("debug", tfunk("%Cgreen:Cache access%R for: " + cacheKey));
-        return cache[cacheKey];
+    if (filePath && cache[filePath]) {
+        log("debug", tfunk("%Cgreen:Cache access%R for: " + filePath));
+        return cache[filePath];
     } else {
-        log("debug", "Not found in cache: " + cachePath);
+        log("debug", "Not found in cache: " + filePath);
     }
 
     try {
-        log("debug", tfunk("%Cyellow:File System%R access for: " + filePath));
-        content = fs.readFileSync(filePath, "utf-8");
-        exports.populateCache(filePath, content);
+        log("debug", tfunk("%Cyellow:File System access%R for: " + filePath));
+        content = fs.readFileSync(makeFsPath(filePath), "utf-8");
+        exports.populateCache(filePath,
+            typeof transform === "function"
+                ? transform(content)
+                : content
+        );
         return content;
     } catch (e) {
         log("warn",
@@ -136,13 +140,27 @@ function isInclude(path) {
 function isLayout(path) {
     return path.match(/([./])?_layouts/);
 }
+/**
+ *
+ */
+function isSnippet(path) {
+    return path.match(/([./])?_snippets/);
+}
 
 /**
  * @param arguments
  * @param name
  */
 function getIncludePath(name) {
-    return "_includes/" + name + ".html";
+    return "includes/" + name + ".html";
+}
+
+/**
+ * @param arguments
+ * @param name
+ */
+function getSnippetPath(name) {
+    return "snippets/" + name;
 }
 
 /**
@@ -150,7 +168,7 @@ function getIncludePath(name) {
  * @param name
  */
 function getLayoutPath(name) {
-    return "_layouts/" + (name || "default") + ".html";
+    return "layouts/" + (name || "default") + ".html";
 }
 
 /**
@@ -235,20 +253,27 @@ function preparePosts(posts) {
         return post;
     });
 }
+
 /**
  * @param string
  */
 function getData(string, data) {
 
-    var parsedContents = readFrontMatter(string);
-    data.page          = parsedContents.front;
-    data.content       = parsedContents.main;
-    data.parsedContent = parsedContents;
-    data.markdown      = processMardownFile(data.content);
-    data.posts         = preparePosts(posts);
-    data.pages         = pages;
+    var parsedContents  = readFrontMatter(string);
+    data.page           = parsedContents.front;
+    data.content        = parsedContents.main;
+    data.parsedContent  = parsedContents;
+    data.markdown       = processMardownFile(data.content);
+    data.posts          = preparePosts(posts);
+    data.pages          = pages;
 
-    data.inc           = getIncludeResolver(data);
+    var includeResolver = getCacheResolver(data, "include");
+    var snippetResolver = getCacheResolver(data, "snippet");
+
+    data.inc            = includeResolver;
+    data.include        = includeResolver;
+    data.highlight      = snippetResolver;
+    data.hl             = snippetResolver;
 
     return data;
 }
@@ -287,25 +312,34 @@ function prepareContent(out, data, config) {
 }
 
 /**
+ * @param content
+ */
+function wrapSnippet(content) {
+    return "```\n" + content + "\n```";
+}
+
+/**
  * @returns {Function}
  */
-function getIncludeResolver(data) {
+function getCacheResolver(data, type) {
 
     return function (chunk, context, bodies, params) {
 
-        log("debug", "Looking for '" + params.tmpl + "' in the cache.");
+        log("debug", "Looking for '" + params.src + "' in the cache.");
 
         var match;
+        var cachePath;
 
         match = _.filter(cache, function (value, item) {
-            return item === params.tmpl;
+            return item === params.src;
         });
 
         if (!match.length) {
-            log("debug", "'" + params.tmpl + "' not found in any caches");
+            log("debug", "'" + params.src + "' not found in any caches");
         }
 
-        getFile(getIncludePath(params.tmpl));
+        var incPath;
+
 
         data.params = {};
 
@@ -317,7 +351,29 @@ function getIncludeResolver(data) {
             data.params[key] = value;
         });
 
-        return chunk.partial(params.tmpl, dust.makeBase(data));
+        if (type === "include") {
+
+            incPath = getIncludePath(params.src);
+
+            getFile(incPath);
+
+            return chunk.partial(
+                incPath,
+                dust.makeBase(data)
+            );
+
+        } else {
+
+            incPath = getSnippetPath(params.src);
+
+            return chunk.map(function(chunk) {
+
+                makeFile(wrapSnippet(getFile(incPath)), data)
+                    .then(function (out) {
+                        chunk.end(out);
+                    });
+            });
+        }
     }
 }
 
@@ -360,38 +416,41 @@ module.exports.compileOne = function (string, config, cb) {
  * @returns {*}
  */
 function makeShortKey(key) {
-    return path.basename(key).split(".")[0];
+    return key.replace(/(.+?)?_((includes|layouts|snippets|posts|pages)(.+))/, "$2");
 }
+module.exports.makeShortKey = makeShortKey;
 
 /**
- *
+ * Populate the cache
  */
 module.exports.populateCache = function (key, value) {
 
     var shortKey;
 
-    log("debug", "Adding to cache: " + key);
-
-    if (isInclude(key)) {
-
-        if (shortKey = makeShortKey(key)) {
-            log("debug", "Adding to cache: " + shortKey);
-            dust.loadSource(dust.compile(value, shortKey));
-            cache[shortKey] = value;
-        }
+    if (shortKey = makeShortKey(key)) {
+        log("debug", "Adding to cache: " + shortKey);
+        dust.loadSource(dust.compile(value, shortKey));
+        cache[shortKey] = value;
+    } else {
+        log("debug", "Adding to cache: " + key);
+        dust.loadSource(dust.compile(value, key));
+        cache[key]      = value;
     }
 
-    if (isLayout(key)) {
+    return cache;
+};
 
-        if (shortKey = makeShortKey(key)) {
-            log("debug", "Adding to cache: " + shortKey);
-            dust.loadSource(dust.compile(value, shortKey));
-            cache[shortKey] = value;
-        }
-    }
-
-    dust.loadSource(dust.compile(value, key));
-    cache[key]      = value;
+/**
+ * Try to retrieve an item from the cache
+ */
+module.exports.checkCache = function (key) {
+    return cache[key]
+        ? cache[key]
+        : (function () {
+            return _.find(cache, function (value, cacheKey) {
+                return _.contains(cacheKey, key);
+            });
+        })();
 };
 
 /**
