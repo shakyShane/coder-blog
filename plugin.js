@@ -62,7 +62,6 @@ module.exports = function (config) {
         });
 
         Q.all(promises).then(function (err, out) {
-            console.log(arguments);
             coderBlog.clearCache();
             console.timeEnd("coderBlog");
             cb();

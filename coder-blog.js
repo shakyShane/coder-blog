@@ -154,10 +154,16 @@ function isSnippet(path) {
 }
 
 /**
+ * Include path has a special case for html files, they can be provided
+ * without the extension
  * @param arguments
  * @param name
  */
 function getIncludePath(name) {
+
+    if (name.match(/html$/)) {
+        return "includes/" + name;
+    }
     return "includes/" + name + ".html";
 }
 
