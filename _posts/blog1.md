@@ -11,6 +11,6 @@ My name is shakyShane. I build things on the internets
 
 My latest project is a static site-generator
 
-{>button /}
+{#inc src="button" /}
 
 
