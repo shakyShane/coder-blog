@@ -138,19 +138,19 @@ function getFile(filePath, transform, allowEmpty) {
  *
  */
 function isInclude(path) {
-    return path.match(/([./])?_includes/);
+    return path.match(/^includes/);
 }
 /**
  *
  */
 function isLayout(path) {
-    return path.match(/([./])?_layouts/);
+    return path.match(/^layouts/);
 }
 /**
  *
  */
 function isSnippet(path) {
-    return path.match(/([./])?_snippets/);
+    return path.match(/^snippets/);
 }
 
 /**
@@ -475,16 +475,40 @@ function makeShortKey(key) {
 module.exports.makeShortKey = makeShortKey;
 
 /**
+ * Partial key for includes (firstcome, first serve)
+ * @param {String} key - eg: includes/blog/head.html
+ * @returns {*}
+ */
+function makePartialKey(key) {
+
+    if (!key) {
+        return;
+    }
+
+    return path.basename(key)
+        .replace(
+            path.extname(key), ""
+        );
+}
+module.exports.makePartialKey = makePartialKey;
+
+/**
  * Populate the cache
  */
 module.exports.populateCache = function (key, value) {
 
-    var shortKey;
+    var shortKey   = makeShortKey(key);
+    var partialKey = makePartialKey(shortKey);
 
-    if (shortKey = makeShortKey(key)) {
+    if (shortKey) {
         log("debug", "Adding to cache: " + shortKey);
         dust.loadSource(dust.compile(value, shortKey));
         cache[shortKey] = value;
+
+        if (isInclude(shortKey) && partialKey && _.isUndefined(cache[partialKey])) {
+            cache[partialKey] = value;
+            dust.loadSource(dust.compile(value, partialKey));
+        }
     } else {
         log("debug", "Adding to cache: " + key);
         dust.loadSource(dust.compile(value, key));

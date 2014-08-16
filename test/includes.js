@@ -12,7 +12,7 @@ var coderBlog = require("../coder-blog");
 var postLayout = multiline.stripIndent(function(){/*
  <!DOCTYPE html>
  <html>
- {>"includes/head" /}
+ {>head /}
  <body class="post">
  {>content /}
  </body>
@@ -22,7 +22,7 @@ var postLayout = multiline.stripIndent(function(){/*
 var pageLayout = multiline.stripIndent(function(){/*
 <!DOCTYPE html>
 <html>
- {>"includes/head" /}
+ {#inc src="head.html" /}
 <body class="page">
 {>content /}
 </body>
@@ -50,7 +50,7 @@ describe("Processing a file", function(){
         coderBlog.populateCache("_layouts/page-test.html", pageLayout);
 
         // Add HEAD section to cache
-        coderBlog.populateCache("_includes/head", "<head><title>{page.title} {site.sitename}</title></head>");
+        coderBlog.populateCache("_includes/head.html", "<head><title>{page.title} {site.sitename}</title></head>");
     });
 
     it("Uses layout", function(done) {
@@ -139,6 +139,28 @@ describe("Processing a file", function(){
         coderBlog.populateCache("/_includes/button.tmpl.html", "<button>{text}</button>");
         coderBlog.compileOne(post2, {}, function (err, out) {
             assert.isTrue(_.contains(out, '<button>Sign Up</button>'));
+            done();
+        });
+    });
+
+    it("Setting PARTIAL short keys for includes in cache", function(done) {
+
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Blogging is coolio"
+         date: 2013-11-13 20:51:39
+         ---
+
+         {>button /}
+
+         */});
+
+        // NO POSTS ADDED
+        coderBlog.populateCache("user/whatever/_includes/button.html", "<button>Sign up</button>");
+        coderBlog.compileOne(post2, {}, function (err, out) {
+            console.log(out);
+            assert.isTrue(_.contains(out, '<button>Sign up</button>'));
             done();
         });
     });

@@ -50,6 +50,32 @@ describe("Cache management", function(){
         assert.deepEqual(cache, expected);
     });
 
+    it("Adds items with partial key", function(){
+
+        var cache = coderBlog.populateCache("_includes/blog/head.html", "1");
+
+        var expected = {
+            "includes/blog/head.html": "1",
+            "head": "1"
+        };
+
+        assert.deepEqual(cache, expected);
+    });
+
+    it("does not overide existing partial keys", function(){
+
+        var cache = coderBlog.populateCache("_includes/blog/head.html", "1");
+            cache = coderBlog.populateCache("_includes/news/head.html", "20");
+
+        var expected = {
+            "includes/news/head.html": "20",
+            "includes/blog/head.html": "1",
+            "head": "1"
+        };
+
+        assert.deepEqual(cache, expected);
+    });
+
     describe("Retreiving items", function () {
 
         it("Retrieves Items", function(){
