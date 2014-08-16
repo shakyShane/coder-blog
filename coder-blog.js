@@ -315,9 +315,43 @@ function prepareContent(out, data, config) {
  * @param content
  */
 function wrapSnippet(content) {
-    return "```\n" + content + "\n```";
+    return "```{params.lang}\n" + content + "\n```";
 }
 
+
+
+/**
+ * @param path
+ * @param data
+ * @param chunk
+ * @returns {*}
+ */
+function getSnippetInclude(path, data, chunk) {
+
+    return chunk.map(function(chunk) {
+
+        makeFile(wrapSnippet(getFile(path)), data)
+            .then(function (out) {
+                chunk.end(out);
+            });
+    });
+}
+
+/**
+ * @param path
+ * @param data
+ * @param chunk
+ * @returns {*}
+ */
+function getInclude(path, data, chunk) {
+
+    getFile(path);
+
+    return chunk.partial(
+        path,
+        dust.makeBase(data)
+    );
+}
 /**
  * @returns {Function}
  */
@@ -338,42 +372,18 @@ function getCacheResolver(data, type) {
             log("debug", "'" + params.src + "' not found in any caches");
         }
 
-        var incPath;
-
-
         data.params = {};
 
         _.each(params, function (value, key) {
             if (_.isUndefined(data[key])) {
                 data[key] = value;
             }
-
             data.params[key] = value;
         });
 
-        if (type === "include") {
-
-            incPath = getIncludePath(params.src);
-
-            getFile(incPath);
-
-            return chunk.partial(
-                incPath,
-                dust.makeBase(data)
-            );
-
-        } else {
-
-            incPath = getSnippetPath(params.src);
-
-            return chunk.map(function(chunk) {
-
-                makeFile(wrapSnippet(getFile(incPath)), data)
-                    .then(function (out) {
-                        chunk.end(out);
-                    });
-            });
-        }
+        return type === "include"
+            ? getInclude(getIncludePath(params.src), data, chunk)
+            : getSnippetInclude(getSnippetPath(params.src), data, chunk);
     }
 }
 

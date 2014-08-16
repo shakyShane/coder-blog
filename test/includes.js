@@ -7,6 +7,7 @@ dust.isDebug = true;
 dust.optimizers.format = function(ctx, node) { return node; };
 
 var coderBlog = require("../coder-blog");
+coderBlog.setLogLevel("debug");
 
 var postLayout = multiline.stripIndent(function(){/*
  <!DOCTYPE html>
@@ -246,14 +247,14 @@ describe("Processing a file", function(){
 
          {#include src="button" /}
 
-         {#highlight src="function2.js" name="shane"/}
+         {#highlight src="function2.js" lang="js" name="shane"/}
 
          */});
 
         coderBlog.populateCache("_snippets/function2.js", 'var name = "{params.name}"');
 
         coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (out) {
-            assert.isTrue(_.contains(out, '<span class="hljs-keyword">var</span> name = <span class="hljs-string">"shane"</span>'));
+            assert.isTrue(_.contains(out, '<code class="lang-js"><span class="hljs-keyword">var</span> name = <span class="hljs-string">"shane"</span>'));
             done();
         });
     });
