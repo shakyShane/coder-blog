@@ -26,7 +26,15 @@ var config       = yaml.safeLoad(fs.readFileSync(configPath, "utf-8"));
 gulp.task("browser-sync", function () {
     browserSync.use(htmlInjector, {});
     browserSync({
-        server: "_site"
+        server: {
+            baseDir: "_site",
+            routes: {
+                "/img": "./img",
+                "/js": "./js"
+
+            }
+        },
+        open: false
     });
 });
 
