@@ -305,7 +305,7 @@ function getData(content, data, config) {
     data.content        = parsedContents.main;
     data.parsedContent  = parsedContents;
     data.markdown       = processMardownContent(data.content, config);
-    data.posts          = preparePosts(posts);
+    data.posts          = preparePosts(posts, data, config);
     data.pages          = pages;
 
     // Helper functions
@@ -540,16 +540,61 @@ module.exports.checkCache = checkCache;
 
 /**
  * @param key
- * @param string
+ * @param front
+ * @param config
+ * @returns {*}
  */
-module.exports.addPost = function (key, string) {
-    posts.push(readFrontMatter(string));
+function makePostUrl(key, front, config) {
+
+    if (config && config.permalink) {
+        return config.permalink;
+    }
+
+    var shortKey = makeShortKey(key);
+
+    return shortKey.replace(/md$/i, "html");
+}
+
+/**
+ * @param key
+ * @param front
+ * @param config
+ * @returns {*}
+ */
+function makePageUrl(key, front, config) {
+
+    if (config && config.permalink) {
+        return config.permalink;
+    }
+
+    var shortKey = makeShortKey(key);
+
+    return shortKey.replace(/md$/i, "html").replace(/^\//, "");
+}
+/**
+ * @param key
+ * @param string
+ * @param [config]
+ */
+module.exports.addPost = function (key, string, config) {
+
+    var front    = readFrontMatter(string);
+    front.url    = makePostUrl(key, front, config);
+    posts.push(front);
+
+    return front;
 };
 
 /**
  * @param key
  * @param string
+ * @param [config]
  */
-module.exports.addPage = function (key, string) {
-    pages.push(readFrontMatter(string));
+module.exports.addPage = function (key, string, config) {
+
+    var front    = readFrontMatter(string);
+    front.url    = makePageUrl(key, front, config);
+    pages.push(front);
+
+    return front;
 };

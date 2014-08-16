@@ -4,6 +4,7 @@ var File      = gutil.File;
 var coderBlog = require("./coder-blog");
 var merge     = require("opt-merger").merge;
 var Q         = require("q");
+var _        = require("lodash");
 
 var PLUGIN_NAME = "gulp-coder-blog";
 
@@ -46,19 +47,24 @@ module.exports = function (config) {
             if (isIncludeOrLayout(key)) {
                 coderBlog.populateCache(key, files[key]);
             } else {
+                var url;
                 if (isPost(key)) {
-                    coderBlog.addPost(key, files[key]);
+                    url = coderBlog.addPost(key, files[key], config).url;
                 }
                 if (isPage(key)) {
-                    coderBlog.addPage(key, files[key]);
+                    console.log("is page");
+                    url = coderBlog.addPage(key, files[key], config).url;
                 }
-                queue.push(key);
+                queue.push({
+                    key: key,
+                    url: url
+                });
             }
         });
 
-        queue.forEach(function (key) {
-            var fileName = coderBlog.makeFilename(key);
-            promises.push(buildOne(stream, files[key], fileName, config));
+        _.each(queue, function (item) {
+            var fileName = coderBlog.makeFilename(item.key);
+            promises.push(buildOne(stream, files[item.key], item.url, config));
         });
 
         Q.all(promises).then(function (err, out) {

@@ -35,8 +35,9 @@ gulp.task("browser-sync", function () {
  */
 gulp.task("default", ["build-blog", "sass", "browser-sync"], function () {
     gulp.watch([
-        "_layouts/*.html",
+        "_layouts/**/*.html",
         "_posts/*.md",
+        "_snippets/**/*",
         "*.yml",
         "index.html"
     ],  ["build-blog", htmlInjector]);
@@ -118,9 +119,14 @@ gulp.task("build", ['rev:css'], function () {
 gulp.task("build-blog", function () {
 
 //    return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "index.html"])
-    return gulp.src(["_posts/blog1.md", "_includes/**/*.html", "_layouts/*.html"])
-        .pipe(coderBlog({env: "dev", logLevel: "debug"}))
-        .pipe(gulp.dest("_site"));
+    return gulp.src([
+        "_posts/blog1.md",
+        "_includes/**/*.html",
+        "_layouts/*.html",
+        "*.html"
+    ])
+    .pipe(coderBlog({env: "dev", logLevel: "debug"}))
+    .pipe(gulp.dest("_site"));
 });
 
 /**
