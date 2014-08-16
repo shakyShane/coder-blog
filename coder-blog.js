@@ -91,13 +91,18 @@ function makeFsPath(filePath) {
 }
 
 /**
- * @param filePath
- * @param [transform]
+ * @param {} filePath
+ * @param {Function} [transform]
+ * @param {Boolean} [allowEmpty] - should file lookups be allowed to return an empty strign?
  * @returns {*}
  */
-function getFile(filePath, transform) {
+function getFile(filePath, transform, allowEmpty) {
 
     log("debug", "Getting file: " + filePath);
+
+    if (_.isUndefined(allowEmpty)) {
+        allowEmpty = true;
+    }
 
     var content;
 
@@ -112,7 +117,7 @@ function getFile(filePath, transform) {
         log("debug", tfunk("%Cyellow:File System access%R for: " + filePath));
         content = fs.readFileSync(makeFsPath(filePath), "utf-8");
         exports.populateCache(filePath,
-            typeof transform === "function"
+            _.isFunction(transform)
                 ? transform(content)
                 : content
         );
@@ -123,7 +128,9 @@ function getFile(filePath, transform) {
                 .replace("%s", e.path)
             )
         );
-        return "";
+        return allowEmpty
+            ? ""
+            : false
     }
 }
 
@@ -352,13 +359,21 @@ function wrapSnippet(content) {
  */
 function getSnippetInclude(path, data, chunk) {
 
-    return chunk.map(function(chunk) {
+    var file = getFile(path, null, false);
 
-        makeFile(wrapSnippet(getFile(path)), data)
-            .then(function (out) {
-                chunk.end(out);
-            });
-    });
+    if (!file) {
+        return chunk.partial( // hack to force template error
+            path,
+            dust.makeBase(data)
+        );
+    } else {
+        return chunk.map(function(chunk) {
+            return makeFile(wrapSnippet(file), data)
+                .then(function (out) {
+                    chunk.end(out);
+                });
+        });
+    }
 }
 
 /**

@@ -53,7 +53,7 @@ describe("API gives meaningfull errors", function(){
         coderBlog.populateCache("_includes/head", "<head><title>{page.title} {site.sitename}</title></head>");
     });
 
-    it("passes error about template", function(done) {
+    it("passes error about includes", function(done) {
 
         var post2 = multiline.stripIndent(function(){/*
          ---
@@ -72,6 +72,28 @@ describe("API gives meaningfull errors", function(){
 
         coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.equal(err, "Error: Template Not Found: includes/buttonss.html");
+            done();
+        });
+    });
+    it("passes error about snippets", function(done) {
+
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Highlight Helper"
+         date: 2013-11-13 20:51:39
+         ---
+
+         {page.title}
+
+         {#hl src="butnsdsd.html" /}
+
+         */});
+
+        coderBlog.populateCache("_snippets/function2.js", 'var name = "{params.name}"');
+
+        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
+            assert.equal(err, "Error: Template Not Found: snippets/butnsdsd.html");
             done();
         });
     });
