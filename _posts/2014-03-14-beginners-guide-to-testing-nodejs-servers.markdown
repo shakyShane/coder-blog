@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Beginners guide to testing NodeJS Servers"
-date:   2014-03-14 20:51:39
+date:   2014-03-14
 categories: javascript nodejs
 ---
 

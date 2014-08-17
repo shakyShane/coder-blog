@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Using SASS - Being efficient with @mixin & @extend"
-date:   2013-10-13 20:51:39
+date:   2013-10-13
 categories: SASS CSS
 ---
 

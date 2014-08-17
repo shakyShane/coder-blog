@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "BrowserSync - it's getting a UI"
-date:   2014-01-14 20:51:39
+date:   2014-01-14
 categories: javascript nodejs
 ---
 

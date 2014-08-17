@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "BrowserSync snippet injector plugin."
-date:   2014-08-05 20:51:39
+date:   2014-08-05
 categories: javascript nodejs
 ---
 

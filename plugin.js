@@ -2,9 +2,10 @@ var through2  = require("through2");
 var gutil     = require("gulp-util");
 var File      = gutil.File;
 var coderBlog = require("./coder-blog");
+var utils     = coderBlog.utils;
 var merge     = require("opt-merger").merge;
 var Q         = require("q");
-var _        = require("lodash");
+var _         = require("lodash");
 
 var PLUGIN_NAME = "gulp-coder-blog";
 
@@ -21,7 +22,7 @@ module.exports = function (config) {
 
     config = merge(defaults, config || {});
 
-    config.siteConfig = config.transformSiteConfig(coderBlog.getYaml(config.configFile), config);
+    config.siteConfig = config.transformSiteConfig(utils.getYaml(config.configFile), config);
 
     var files = {};
     var posts = {};
@@ -42,7 +43,7 @@ module.exports = function (config) {
         var queue = [];
 
         Object.keys(files).forEach(function (key) {
-            if (isIncludeOrLayout(key)) {
+            if (isPartial(key)) {
                 coderBlog.populateCache(key, files[key]);
             } else {
                 var url;
@@ -115,7 +116,7 @@ function transformSiteConfig(yaml, config) {
     return yaml;
 }
 
-function isIncludeOrLayout(path) {
+function isPartial(path) {
     return path.match(/(_includes|_layouts)/);
 }
 
