@@ -62,9 +62,11 @@ var utils = {
     /**
      * Wrap a snippet include
      * @param content
+     * @param lang
      */
-    wrapSnippet: function (content) {
-        return "```{params.lang}\n" + content + "\n```";
+    wrapSnippet: function (content, lang) {
+        var string = "```%lang%\n" + content + "\n```";
+        return string.replace("%lang%", lang);
     },
 
     /**

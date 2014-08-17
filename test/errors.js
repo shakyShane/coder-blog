@@ -92,6 +92,7 @@ describe("API gives meaningfull errors", function(){
          */});
 
         var post = coderBlog.addPost("_posts/post2.md", post2, {});
+
         coderBlog.populateCache("_snippets/function2.js", 'var name = "{params.name}"');
 
         coderBlog.compileOne(post, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {

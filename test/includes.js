@@ -273,11 +273,11 @@ describe("Processing a file", function(){
 
          {#inc src="button" type="primary" text="Sign up"/}
 
-         {#snippet src="function2.js" lang="js" name="shane"/}
+         {#snippet src="function2.js" name="shane"/}
 
          */});
 
-        coderBlog.populateCache("_snippets/function2.js", 'var name = "{params.name}"');
+        coderBlog.populateCache("_snippets/function2.js", 'var name = "shane"');
         var post = coderBlog.addPost("_posts/post2.md", post2, {});
         coderBlog.compileOne(post, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.isTrue(_.contains(out, '<button class="button button--primary">Sign up</button>'));

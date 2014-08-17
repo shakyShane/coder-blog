@@ -299,23 +299,27 @@ function prepareContent(out, data, config) {
 }
 
 /**
- * @param path
+ * @param filePath
  * @param data
  * @param chunk
+ * @param params
  * @returns {*}
  */
-function getSnippetInclude(path, data, chunk) {
+function getSnippetInclude(filePath, data, chunk, params) {
 
-    var file = getFile(path, null, false);
+    var file = getFile(filePath, null, false);
+    var lang = params.lang
+        ? params.lang
+        : path.extname(filePath).replace(".", "");
 
     if (!file) {
-        return chunk.partial( // hack to force template error
-            path,
+        return chunk.partial( // hack to force a template error
+            filePath,
             dust.makeBase(data)
         );
     } else {
         return chunk.map(function(chunk) {
-            return makeFile(utils.wrapSnippet(file), data)
+            return makeFile(utils.wrapSnippet(file, lang), data)
                 .then(function (out) {
                     chunk.end(out);
                 });
@@ -360,7 +364,7 @@ function getCacheResolver(data, type) {
 
         return type === "include"
             ? getInclude(utils.getIncludePath(params.src), data, chunk)
-            : getSnippetInclude(utils.getSnippetPath(params.src), data, chunk);
+            : getSnippetInclude(utils.getSnippetPath(params.src), data, chunk, params);
     }
 }
 
