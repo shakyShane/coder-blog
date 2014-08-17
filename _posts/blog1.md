@@ -11,6 +11,4 @@ My name is shakyShane. I build things on the internets
 
 My latest project is a static site-generator
 
-{#inc src="button" /}
-
-
+![A cat](/img/kitten.jpg)

@@ -6,4 +6,4 @@ categories: javascript
 markdown: "false"
 ---
 
-#Should not render markdown
+{post.title}

@@ -19,7 +19,6 @@ var defaults = {
  */
 module.exports = function (config) {
 
-    console.time("coderBlog");
     config = merge(defaults, config || {});
 
     config.siteConfig = config.transformSiteConfig(coderBlog.getYaml(config.configFile), config);
@@ -29,7 +28,6 @@ module.exports = function (config) {
     var stream;
 
     return through2.obj(function (file, enc, cb) {
-
         stream          = this;
         var contents    = file._contents.toString();
         var relFilePath = file.path.replace(file.cwd, "");
@@ -52,7 +50,6 @@ module.exports = function (config) {
                     url = coderBlog.addPost(key, files[key], config).url;
                 }
                 if (isPage(key)) {
-                    console.log("is page");
                     url = coderBlog.addPage(key, files[key], config).url;
                 }
                 queue.push({
@@ -69,7 +66,6 @@ module.exports = function (config) {
 
         Q.all(promises).then(function (err, out) {
             coderBlog.clearCache();
-            console.timeEnd("coderBlog");
             cb();
         }).catch(function (err) {
             gutil.log(coderBlog.logger.compile("%Cwarn:" + err));

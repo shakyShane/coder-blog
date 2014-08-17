@@ -14,7 +14,7 @@ var postLayout = multiline.stripIndent(function(){/*
  <html>
  {>head /}
  <body class="post">
- {>content /}
+ {#content /}
  </body>
  </html>
  */});
@@ -24,7 +24,7 @@ var pageLayout = multiline.stripIndent(function(){/*
 <html>
  {#inc src="head.html" /}
 <body class="page">
-{>content /}
+{#content /}
 </body>
 </html>
 */});

@@ -1,7 +1,7 @@
-var fs       = require("fs");
-var path     = require("path");
-var Q        = require("q");
-var _        = require("lodash");
+var fs         = require("fs");
+var path       = require("path");
+var Q          = require("q");
+var _          = require("lodash");
 
 /**
  * Dust for awesome templates
@@ -232,6 +232,10 @@ module.exports.makeFilename = makeFilename;
  */
 function processMardownContent(string, config) {
 
+//    if (!config.highlight) {
+//        return marked(string);
+//    }
+
     marked.setOptions({
         highlight: (function () {
             return config.markdown && config.markdown.highlight
@@ -304,7 +308,7 @@ function getData(content, data, config) {
     data.post           = parsedContents.front;
     data.content        = parsedContents.main;
     data.parsedContent  = parsedContents;
-    data.markdown       = processMardownContent(data.content, config);
+//    data.markdown       = processMardownContent(data.content, config);
     data.posts          = preparePosts(posts, data, config);
     data.pages          = pages;
 
@@ -424,6 +428,28 @@ function getCacheResolver(data, type) {
 }
 
 /**
+ * Allow highlighting within code fences, requiring NO additional syntax
+ * @param content
+ * @returns {*|XML|string|void}
+ */
+function escapeCodeFences(content) {
+    return content.replace(/```([a-z-]+)\n([\s\S]+?)```/gi, function () {
+        return "{`\n```" + arguments[1] + "\n" + arguments[2] + "\n```\n`}";
+    });
+}
+
+/**
+ * Ensure that any inline code snippets are escaped
+ * @param content
+ * @returns {*|XML|string|void}
+ */
+function escapeInlineCode(content) {
+    return content.replace(/`(?!`)(.+?)`/, function () {
+        return "{``" + arguments[1] + "``}";
+    })
+}
+
+/**
  * Compile a single file
  * @param string
  * @param config
@@ -443,13 +469,21 @@ module.exports.compileOne = function (string, config, cb) {
 
         data = getData(string, data, config);
 
-        makeFile(data.content, data)
+        var escapedContent = escapeCodeFences(data.content);
+            escapedContent = escapeInlineCode(escapedContent);
+
+        makeFile(escapedContent, data)
             .then(render)
             .catch(cb);
 
         function render(out) {
 
-            exports.populateCache("content", prepareContent(out, data, config));
+            var fullContent = prepareContent(out, data, config);
+
+            // Just write the cody content without parsing (already done);
+            data.content = function (chunk) {
+                return chunk.write(fullContent);
+            };
 
             compile(config, data)
                 .then(function (out) {
@@ -457,7 +491,6 @@ module.exports.compileOne = function (string, config, cb) {
                 })
                 .catch(cb);
         }
-
     } else {
         cb(null, string);
     }
@@ -552,7 +585,7 @@ function makePostUrl(key, front, config) {
 
     var shortKey = makeShortKey(key);
 
-    return shortKey.replace(/md$/i, "html");
+    return shortKey.replace(/(md|markdown)$/i, "html");
 }
 
 /**
@@ -569,7 +602,7 @@ function makePageUrl(key, front, config) {
 
     var shortKey = makeShortKey(key);
 
-    return shortKey.replace(/md$/i, "html").replace(/^\//, "");
+    return shortKey.replace(/(md|markdown)$/i, "html").replace(/^\//, "");
 }
 /**
  * @param key

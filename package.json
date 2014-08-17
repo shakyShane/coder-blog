@@ -19,7 +19,8 @@
     "gulp-awspublish": "0.0.22",
     "gulp-sass": "^0.7.2",
     "gulp-autoprefixer": "0.0.8",
-    "mocha": "*"
+    "mocha": "*",
+    "sinon": "^1.10.3"
   },
   "dependencies": {
     "dustjs-linkedin": "^2.4.0",
@@ -31,6 +32,7 @@
     "marked": "^0.3.2",
     "lodash": "^2.4.1",
     "tfunk": "0.0.2",
-    "highlight.js": "^8.1.0"
+    "highlight.js": "^8.1.0",
+    "pygmentize-bundled": "^2.1.1"
   }
 }

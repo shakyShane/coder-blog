@@ -1,20 +1,19 @@
 <!DOCTYPE html>
 <html>
 
-{>head /}
+{#inc src="head" /}
 
-<body class="post">
+<body>
 
-
-{>header /}
+{#inc src="header" /}
 
 <main class="page-content">
     <div class="container">
-        {>content /}
+        {#content /}
     </div>
 </main>
 
-{>footer /}
-
+{#inc src="footer" /}
+{#inc src="scripts" /}
 </body>
 </html>

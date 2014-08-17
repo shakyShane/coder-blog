@@ -31,7 +31,6 @@ gulp.task("browser-sync", function () {
             routes: {
                 "/img": "./img",
                 "/js": "./js"
-
             }
         },
         open: false
@@ -41,11 +40,11 @@ gulp.task("browser-sync", function () {
 /**
  * Default task
  */
-gulp.task("default", ["build-blog", "sass", "browser-sync"], function () {
+gulp.task("default", ["build-blog", "browser-sync"], function () {
     gulp.watch([
         "_layouts/**/*.html",
         "_includes/**/*.html",
-        "_posts/*.md",
+        "_posts/*",
         "_snippets/**/*",
         "*.yml",
         "index.html"
@@ -129,12 +128,12 @@ gulp.task("build-blog", function () {
 
 //    return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "index.html"])
     return gulp.src([
-        "_posts/blog1.md",
+        "_posts/*.{md,markdown}",
         "_includes/**/*.html",
         "_layouts/*.html",
         "*.html"
     ])
-    .pipe(coderBlog({env: "dev", logLevel: "debug"}))
+    .pipe(coderBlog({env: "dev", highlight: true, markdown: true}))
     .pipe(gulp.dest("_site"));
 });
 
