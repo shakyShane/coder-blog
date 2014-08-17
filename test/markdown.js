@@ -12,14 +12,14 @@ var coderBlog = require("../coder-blog");
 //coderBlog.setLogLevel("debug");
 
 var postLayout = multiline.stripIndent(function(){/*
- <!DOCTYPE html>
- <html>
- {>head /}
- <body class="post">
- {#content /}
- </body>
- </html>
- */});
+<!DOCTYPE html>
+<html>
+{>head /}
+<body class="post">
+{#content /}
+</body>
+</html>
+*/});
 
 var pageLayout = multiline.stripIndent(function(){/*
 <!DOCTYPE html>
@@ -32,15 +32,15 @@ var pageLayout = multiline.stripIndent(function(){/*
 */});
 
 var post1 = multiline.stripIndent(function(){/*
- ---
- layout: post-test
- title: "Function Composition in Javascript."
- date: 2013-11-13 20:51:39
- ---
+---
+layout: post-test
+title: "Function Composition in Javascript."
+date: 2013-11-13 20:51:39
+---
 
- Hi there {page.title}
+Hi there {page.title}
 
- */});
+*/});
 
 describe("Processing a Markdown file", function(){
 
@@ -83,7 +83,7 @@ describe("Processing a Markdown file", function(){
 
         // NO POSTS ADDED
         coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, function (err, out) {
+        coderBlog.compileOne("index.html", {}, function (err, out) {
             assert.isTrue(_.contains(out, '#Welcome to my blog.'));
             assert.isFalse(_.contains(out, 'I have written before..'));
             done();
@@ -116,7 +116,7 @@ describe("Processing a Markdown file", function(){
 
         // NO POSTS ADDED
         coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, function (err, out) {
+        coderBlog.compileOne("index.html", {}, function (err, out) {
             assert.isTrue(_.contains(out, '<h1 id="homepage">Homepage</h1>'));
             assert.isTrue(_.contains(out, '<p>Kittenz</p>'));
             done();
@@ -137,8 +137,8 @@ describe("Processing a Markdown file", function(){
 
 
         // NO POSTS ADDED
-        coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, function (err, out) {
+        var page = coderBlog.addPage("index.html", index);
+        coderBlog.compileOne(page, {}, function (err, out) {
             assert.isTrue(_.contains(out, '<p><code>var shane = function(){ return; }</code></p>'));
             done();
         });
@@ -162,7 +162,7 @@ describe("Processing a Markdown file", function(){
 
         // NO POSTS ADDED
         coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, function (err, out) {
+        coderBlog.compileOne("index.html", {}, function (err, out) {
             assert.isTrue(_.contains(out, '<code class="lang-js">'));
             done();
         });
@@ -181,9 +181,9 @@ lang: "js"
 
 ```css
 .box {
- display: inline-block;
- zoom: 1;
- *display: inline;
+display: inline-block;
+zoom: 1;
+*display: inline;
 }
 ```
 
@@ -209,6 +209,6 @@ zoom: 1;
 
         // NO POSTS ADDED
         coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, done); // Good if no error thrown
+        coderBlog.compileOne("index.html", {}, done); // Good if no error thrown
     });
 });

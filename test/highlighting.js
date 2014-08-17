@@ -83,8 +83,8 @@ describe("Processing a Markdown file", function(){
          */});
 
 
-        // NO POSTS ADDED
-        coderBlog.compileOne(index, {}, function (err, out) {
+        var post = coderBlog.addPost("_posts/post2.md", index, {});
+        coderBlog.compileOne(post, {}, function (err, out) {
             assert.isTrue(_.contains(out, '<pre><code><span class="hljs-keyword">var</span> shane'));
             done();
         });

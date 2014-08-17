@@ -137,7 +137,7 @@ var utils = {
 
         if (key.match(/(.+)\//)){
 
-            if (config.urlFormat) {
+            if (config && config.urlFormat) {
 
                 url = config.urlFormat
                     .replace(":filename", basename);

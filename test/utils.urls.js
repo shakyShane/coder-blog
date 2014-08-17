@@ -65,7 +65,7 @@ var tests = [
 ];
 
 
-describe.only("Creating urls", function(){
+describe("Creating urls", function(){
     tests.forEach(function (item) {
         it(item.message, function(){
             var actual   = makePostUrl(item.key, item.item, item.config);

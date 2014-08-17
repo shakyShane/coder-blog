@@ -1,7 +1,5 @@
 var _             = require("lodash");
-var multiline     = require("multiline");
 var assert        = require("chai").assert;
-var dust          = require("dustjs-linkedin");
 
 var coderBlog = require("../coder-blog");
 
@@ -81,7 +79,7 @@ describe("Cache management", function(){
         it("Retrieves Items", function(){
 
             coderBlog.populateCache("_layouts/head.html", "1");
-            var actual = coderBlog.checkCache("layouts/head.html");
+            var actual = coderBlog.getFromCache("layouts/head.html", true);
             var expected = "1";
 
             assert.deepEqual(actual, expected);
@@ -89,7 +87,7 @@ describe("Cache management", function(){
         it("Retrieves Items", function(){
 
             coderBlog.populateCache("/user/shakyshane/_layouts/head.html", "1");
-            var actual = coderBlog.checkCache("layouts/head.html");
+            var actual = coderBlog.getFromCache("layouts/head.html", true);
             var expected = "1";
 
             assert.deepEqual(actual, expected);
@@ -97,7 +95,7 @@ describe("Cache management", function(){
         it("Retrieves Items", function(){
 
             coderBlog.populateCache("_layouts/head.html", "1");
-            var actual = coderBlog.checkCache("layouts/head");
+            var actual = coderBlog.getFromCache("layouts/head", true);
             var expected = "1";
 
             assert.deepEqual(actual, expected);
@@ -105,7 +103,7 @@ describe("Cache management", function(){
         it("Retrieves Items using single key", function(){
 
             coderBlog.populateCache("_layouts/head.html", "1");
-            var actual = coderBlog.checkCache("head");
+            var actual = coderBlog.getFromCache("head", true);
             var expected = "1";
 
             assert.deepEqual(actual, expected);

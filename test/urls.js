@@ -10,35 +10,35 @@ var coderBlog = require("../coder-blog");
 //coderBlog.setLogLevel("debug");
 
 var postLayout = multiline.stripIndent(function(){/*
- <!DOCTYPE html>
- <html>
- {>head /}
- <body class="post">
- {#content /}
- </body>
- </html>
- */});
+<!DOCTYPE html>
+<html>
+{>head /}
+<body class="post">
+{#content /}
+</body>
+</html>
+*/});
 
 var pageLayout = multiline.stripIndent(function(){/*
- <!DOCTYPE html>
- <html>
- {#inc src="head.html" /}
- <body class="page">
- {#content /}
- </body>
- </html>
- */});
+<!DOCTYPE html>
+<html>
+{#inc src="head.html" /}
+<body class="page">
+{#content /}
+</body>
+</html>
+*/});
 
 var post1 = multiline.stripIndent(function(){/*
- ---
- layout: post-test
- title: "Function Composition in Javascript."
- date: 2013-11-13 20:51:39
- ---
+---
+layout: post-test
+title: "Function Composition in Javascript."
+date: 2013-11-13 20:51:39
+---
 
- Hi there {page.title}
+Hi there {page.title}
 
- */});
+*/});
 
 describe("Processing a file", function(){
 
@@ -70,9 +70,9 @@ describe("Processing a file", function(){
 
         // NO POSTS ADDED
         coderBlog.addPost("_posts/blog1.md", post1);
-        coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, function (err, out) {
-            assert.isTrue(_.contains(out, '<a href="posts/blog1.html">Function Composition in Javascript.</a>'));
+        var page = coderBlog.addPage("index.html", index);
+        coderBlog.compileOne(page, {}, function (err, out) {
+            assert.isTrue(_.contains(out, '<a href="/posts/blog1.html">Function Composition in Javascript.</a>'));
             done();
         });
     });

@@ -10,19 +10,19 @@ var coderBlog = require("../coder-blog");
 //coderBlog.setLogLevel("debug");
 
 var postLayout = multiline.stripIndent(function(){/*
- <!DOCTYPE html>
- <html>
- {>head /}
- <body class="post">
- {#content /}
- </body>
- </html>
- */});
+<!DOCTYPE html>
+<html>
+{>head /}
+<body class="post">
+{#content /}
+</body>
+</html>
+*/});
 
 var pageLayout = multiline.stripIndent(function(){/*
 <!DOCTYPE html>
 <html>
- {#inc src="head.html" /}
+{#inc src="head.html" /}
 <body class="page">
 {#content /}
 </body>
@@ -30,15 +30,15 @@ var pageLayout = multiline.stripIndent(function(){/*
 */});
 
 var post1 = multiline.stripIndent(function(){/*
- ---
- layout: post-test
- title: "Function Composition in Javascript."
- date: 2013-11-13 20:51:39
- ---
+---
+layout: post-test
+title: "Function Composition in Javascript."
+date: 2013-11-13 20:51:39
+---
 
- Hi there {page.title}
+Hi there {page.title}
 
- */});
+*/});
 
 describe("Processing a file", function(){
 
@@ -55,7 +55,8 @@ describe("Processing a file", function(){
 
     it("Uses layout", function(done) {
 
-        coderBlog.compileOne(post1, {siteConfig: {sitename: "({shakyShane})"}}, function (err, out) {
+        var post = coderBlog.addPost("_posts/post2.md", post1, {});
+        coderBlog.compileOne(post, {siteConfig: {sitename: "({shakyShane})"}}, function (err, out) {
             assert.isTrue(_.contains(out, 'Function Composition in Javascript'));
             assert.isTrue(_.contains(out, '({shakyShane})'));
             done();
@@ -74,10 +75,8 @@ describe("Processing a file", function(){
          #Welcome to my blog. {?posts}I have written before..{/posts}
          */});
 
-
-        // NO POSTS ADDED
-        coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, function (err, out) {
+        var page = coderBlog.addPage("index.html", index, {});
+        coderBlog.compileOne(page, {}, function (err, out) {
             assert.isTrue(_.contains(out, '#Welcome to my blog.'));
             assert.isFalse(_.contains(out, 'I have written before..'));
             done();
@@ -110,10 +109,10 @@ describe("Processing a file", function(){
 
 
         // NO POSTS ADDED
-        coderBlog.addPost("post1.html", post1);
-        coderBlog.addPost("post2.html", post2);
-        coderBlog.addPage("index.html", index);
-        coderBlog.compileOne(index, {}, function (err, out) {
+        coderBlog.addPost("_posts/post1.html", post1, {});
+        coderBlog.addPost("_posts/post2.html", post2, {});
+        var page = coderBlog.addPage("index.html", index, {});
+        coderBlog.compileOne(page, {}, function (err, out) {
 
             assert.isTrue(_.contains(out, '<h1 id="welcome-to-my-blog">Welcome to my blog</h1>'));
             assert.isTrue(_.contains(out, '<p><a href="#">Function Composition in Javascript.</a></p>'));
@@ -125,7 +124,7 @@ describe("Processing a file", function(){
 
     it("Setting short keys for includes in cache", function(done) {
 
-        var post2 = multiline.stripIndent(function(){/*
+        var index = multiline.stripIndent(function(){/*
          ---
          layout: post-test
          title: "Blogging is coolio"
@@ -137,7 +136,8 @@ describe("Processing a file", function(){
 
         // NO POSTS ADDED
         coderBlog.populateCache("/_includes/button.tmpl.html", "<button>{text}</button>");
-        coderBlog.compileOne(post2, {}, function (err, out) {
+        var page = coderBlog.addPage("index.html", index, {});
+        coderBlog.compileOne(page, {}, function (err, out) {
             assert.isTrue(_.contains(out, '<button>Sign Up</button>'));
             done();
         });
@@ -158,7 +158,8 @@ describe("Processing a file", function(){
 
         // NO POSTS ADDED
         coderBlog.populateCache("user/whatever/_includes/button.html", "<button>Sign up</button>");
-        coderBlog.compileOne(post2, {}, function (err, out) {
+        coderBlog.addPage("werg/wergwerg/wergwergw/werg/_posts/post1.md", post2, {});
+        coderBlog.compileOne("posts/post1.md", {}, function (err, out) {
             assert.isTrue(_.contains(out, '<button>Sign up</button>'));
             done();
         });
@@ -178,8 +179,9 @@ describe("Processing a file", function(){
          */});
 
         // NO POSTS ADDED
+        var post = coderBlog.addPage("wef/_posts/post2.md", post2, {});
         coderBlog.populateCache("some/Random/path/_includes/button.html", "<button>{params.text}</button>");
-        coderBlog.compileOne(post2, {}, function (err, out) {
+        coderBlog.compileOne(post, {}, function (err, out) {
             assert.isTrue(_.contains(out, '<button>Sign up</button>'));
             done();
         });
@@ -203,7 +205,8 @@ describe("Processing a file", function(){
 
         // NO POSTS ADDED
         coderBlog.populateCache("_includes/button.tmpl.html", "<button>{params.text}</button>");
-        coderBlog.compileOne(post2, {siteConfig: {title: "Blog Name"}}, function (err, out) {
+        coderBlog.addPage("_posts/post2.md", post2, {});
+        coderBlog.compileOne("posts/post2.md", {siteConfig: {title: "Blog Name"}}, function (err, out) {
             assert.isTrue(_.contains(out, '<button>Sign Up</button>'));
             assert.isTrue(_.contains(out, 'Blog Name'));
             done();
@@ -226,7 +229,8 @@ describe("Processing a file", function(){
          */});
 
         // NO POSTS ADDED
-        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
+        coderBlog.addPost("_posts/post2.md", post2, {});
+        coderBlog.compileOne("_posts/post2.md", {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.isTrue(_.contains(out, 'var shane = "hi";'));
             done();
         });
@@ -249,7 +253,8 @@ describe("Processing a file", function(){
          */});
 
         // NO POSTS ADDED
-        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
+        coderBlog.addPost("_posts/post2.md", post2, {});
+        coderBlog.compileOne("_posts/post2.md", {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.isTrue(_.contains(out, '<span class="hljs-keyword">var</span>'));
             done();
         });
@@ -273,8 +278,8 @@ describe("Processing a file", function(){
          */});
 
         coderBlog.populateCache("_snippets/function2.js", 'var name = "{params.name}"');
-
-        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
+        var post = coderBlog.addPost("_posts/post2.md", post2, {});
+        coderBlog.compileOne(post, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.isTrue(_.contains(out, '<button class="button button--primary">Sign up</button>'));
             assert.isTrue(_.contains(out, '<code class="lang-js"><span class="hljs-keyword">var</span> name = <span class="hljs-string">"shane"</span>'));
             done();

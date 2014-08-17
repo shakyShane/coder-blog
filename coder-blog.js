@@ -383,7 +383,12 @@ module.exports.compileOne = function (item, config, cb) {
         log.setLogLevel(config.logLevel);
     }
 
-    if (item.front) {
+    // Try to find an item from the cache
+    if (_.isString(item)) {
+        item = getFromCache(item);
+    }
+
+    if (item && item.front) {
 
         data = getData(item.front, data, config);
         data.content = item.content;
@@ -444,9 +449,19 @@ module.exports.populateCache = function (key, value) {
 /**
  * Check the cache for existing matches
  * @param key
+ * @param partial
  * @returns {*}
  */
-function checkCache(key) {
+function getFromCache(key, partial) {
+
+    var shortKey = utils.makeShortKey(key);
+    var pluck    = {key: shortKey};
+
+    if (!partial) {
+        return _.find(pages, pluck)
+            || _.find(posts, pluck);
+    }
+
     return cache[key]
         ? cache[key]
         : (function () {
@@ -454,12 +469,14 @@ function checkCache(key) {
                 return _.contains(cacheKey, key);
             });
     })();
+
+
 }
 
 /**
  * Try to retrieve an item from the cache
  */
-module.exports.checkCache = checkCache;
+module.exports.getFromCache = getFromCache;
 
 /**
  * Allow api users to retrieve the cache.

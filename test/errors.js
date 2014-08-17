@@ -68,9 +68,10 @@ describe("API gives meaningfull errors", function(){
 
          */});
 
+        var post = coderBlog.addPost("_posts/post2.md", post2, {});
         coderBlog.populateCache("_snippets/function2.js", 'var name = "{params.name}"');
 
-        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
+        coderBlog.compileOne(post, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.equal(err, "Error: Template Not Found: includes/buttonss.html");
             done();
         });
@@ -90,9 +91,10 @@ describe("API gives meaningfull errors", function(){
 
          */});
 
+        var post = coderBlog.addPost("_posts/post2.md", post2, {});
         coderBlog.populateCache("_snippets/function2.js", 'var name = "{params.name}"');
 
-        coderBlog.compileOne(post2, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
+        coderBlog.compileOne(post, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.equal(err, "Error: Template Not Found: snippets/butnsdsd.html");
             done();
         });
