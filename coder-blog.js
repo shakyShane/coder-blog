@@ -2,6 +2,8 @@ var fs         = require("fs");
 var path       = require("path");
 var Q          = require("q");
 var _          = require("lodash");
+var merge      = require("opt-merger").merge;
+
 
 /**
  * Dust for awesome templates
@@ -68,7 +70,8 @@ var pages    = [];
 
 var defaults = {
     configFile: "./_config.yml",
-    markdown: true
+    markdown: true,
+    highlight: true
 };
 
 module.exports.cache = cache;
@@ -228,13 +231,14 @@ module.exports.makeFilename = makeFilename;
 
 /**
  * @param string
+ * @param config
  * @returns {*|exports}
  */
 function processMardownContent(string, config) {
 
-//    if (!config.highlight) {
-//        return marked(string);
-//    }
+    if (!config.highlight) {
+        return marked(string);
+    }
 
     marked.setOptions({
         highlight: (function () {
@@ -461,6 +465,8 @@ module.exports.compileOne = function (string, config, cb) {
         site: config.siteConfig || getYaml(defaults.configFile)
     };
 
+    config = _.merge(_.cloneDeep(defaults), config);
+
     if (!_.isUndefined(config.logLevel)) {
         exports.setLogLevel(config.logLevel);
     }
@@ -571,6 +577,14 @@ function checkCache(key) {
  */
 module.exports.checkCache = checkCache;
 
+module.exports.getCache = function () {
+    return {
+        partials: cache,
+        posts: posts,
+        pages: pages
+    };
+};
+
 /**
  * @param key
  * @param front
@@ -613,6 +627,7 @@ module.exports.addPost = function (key, string, config) {
 
     var front    = readFrontMatter(string);
     front.url    = makePostUrl(key, front, config);
+    front.content = string;
     posts.push(front);
 
     return front;
@@ -625,8 +640,9 @@ module.exports.addPost = function (key, string, config) {
  */
 module.exports.addPage = function (key, string, config) {
 
-    var front    = readFrontMatter(string);
-    front.url    = makePageUrl(key, front, config);
+    var front     = readFrontMatter(string);
+    front.url     = makePageUrl(key, front, config);
+    front.content = string;
     pages.push(front);
 
     return front;
