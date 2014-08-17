@@ -15,13 +15,13 @@ We'll use `inline-block` & `border-radius` as simple examples here.
 
 Nothing more annoying that IE7's treatment of inline-block. You've probably seen this littered around a project before
 
-```css
+{#hl lang="css"}
 .box {
     display: inline-block;
     zoom: 1;
     *display: inline;
 }
-```
+{/hl}
 
 
 Ok it works, but it's three lines of code. With sass we could define a mixin & then use that anywhere we want the inline-block hack.

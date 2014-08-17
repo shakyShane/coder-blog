@@ -49,6 +49,17 @@ var utils = {
         })
     },
     /**
+     * @param content
+     * @param lang
+     * @returns {string}
+     */
+    wrapCode: function (content, lang) {
+        content = content.replace(/^\n/, "");
+        return "<pre><code%c>%s</code></pre>"
+            .replace("%c", lang ? ' class="lang-' + lang + '"' : "")
+            .replace("%s", content);
+    },
+    /**
      * Wrap a snippet include
      * @param content
      */

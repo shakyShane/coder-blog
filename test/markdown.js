@@ -155,7 +155,7 @@ describe("Processing a Markdown file", function(){
          lang: "js"
          ---
 
-         {#hl src="function.js" lang=page.lang/}
+         {#snippet src="function.js" lang=page.lang/}
 
          */});
 

@@ -268,7 +268,7 @@ describe("Processing a file", function(){
 
          {#inc src="button" type="primary" text="Sign up"/}
 
-         {#highlight src="function2.js" lang="js" name="shane"/}
+         {#snippet src="function2.js" lang="js" name="shane"/}
 
          */});
 

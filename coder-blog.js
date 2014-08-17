@@ -177,12 +177,12 @@ function processMardownContent(string, config) {
 
 /**
  * @param code
- * @param lang
- * @param callback
+ * @param [lang]
+ * @param [callback]
  * @returns {*}
  */
 function highlightSnippet(code, lang, callback) {
-    return highlight.highlightAuto(code).value;
+    return highlight.highlight(lang || "js", code).value;
 }
 
 /**
@@ -253,11 +253,35 @@ function getData(content, data, config) {
     // Helper functions
     data.inc            = includeResolver;
     data.include        = includeResolver;
-    data.highlight      = snippetResolver;
-    data.hl             = snippetResolver;
+    data.snippet        = snippetResolver;
+
+    data.highlight      = snippetHelper;
+    data.hl             = snippetHelper;
 
     return data;
 }
+
+/**
+ * Snippet helper
+ * @param chunk
+ * @param context
+ * @param bodies
+ * @param params
+ * @returns {*}
+ */
+function snippetHelper(chunk, context, bodies, params) {
+    if (bodies.block) {
+        return chunk.capture(bodies.block, context, function(string, chunk) {
+            chunk.end(
+                utils.wrapCode(
+                    highlightSnippet(string, params.lang), params.lang
+                )
+            );
+        });
+    }
+    // If there's no block, just return the chunk
+    return chunk;
+};
 
 module.exports.clearCache = function () {
     log("debug", "Clearing all caches, (posts, pages, includes, partials)");

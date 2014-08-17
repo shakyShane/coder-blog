@@ -86,7 +86,7 @@ describe("API gives meaningfull errors", function(){
 
          {page.title}
 
-         {#hl src="butnsdsd.html" /}
+         {#snippet src="butnsdsd.html" /}
 
          */});
 
