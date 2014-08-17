@@ -133,7 +133,7 @@ gulp.task("build-blog", function () {
         "_layouts/*.html",
         "*.html"
     ])
-    .pipe(coderBlog({env: "dev", highlight: true, markdown: true, logLevel: "debug"}))
+    .pipe(coderBlog({env: "dev", highlight: true, markdown: true, logLevel: "warn"}))
     .pipe(gulp.dest("_site"));
 });
 

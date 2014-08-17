@@ -149,7 +149,8 @@ function makeFile(template, data) {
  * @param filePath
  */
 function makeFilename(filePath) {
-    return path.basename(filePath).split(".")[0] + ".html";
+    return filePath.replace(/^\//, "");
+//    return path.basename(filePath).split(".")[0] + ".html";
 }
 module.exports.makeFilename = makeFilename;
 
@@ -204,13 +205,13 @@ function readFrontMatter(file) {
         if (end != -1) {
             return {
                 front: yaml.load(file.slice(4, end + 1)) || {},
-                main: file.slice(end + 5)
+                content: file.slice(end + 5)
             };
         }
     }
     return {
         front: {},
-        main: file
+        content: file
     };
 }
 
@@ -240,12 +241,9 @@ function getData(content, data, config) {
     var includeResolver = getCacheResolver(data, "include");
     var snippetResolver = getCacheResolver(data, "snippet");
 
-    data.dateObj        = parsedContents.front.date;
-    data.date           = moment(data.dateObj).format(config.dateFormat);
-
     data.page           = parsedContents.front;
     data.post           = parsedContents.front;
-    data.content        = parsedContents.main;
+    data.content        = parsedContents.content;
     data.parsedContent  = parsedContents;
     data.posts          = preparePosts(posts, data, config);
     data.pages          = pages;
@@ -518,6 +516,7 @@ module.exports.addPage = function (key, string, config) {
 
 /**
  * @param cache
+ * @param type
  * @param key
  * @param string
  * @param config
@@ -525,15 +524,18 @@ module.exports.addPage = function (key, string, config) {
  */
 function addItem(cache, type, key, string, config) {
 
-    var front     = readFrontMatter(string);
+    var item     = readFrontMatter(string);
     var urlMethod = type === "post"
         ? "makePostUrl"
         : "makePageUrl";
 
-    front.url     = utils[urlMethod](key, front, config);
-    front.content = string;
+    // Top level data for page/post
+    item.url     = utils[urlMethod](key, item, config);
+    item.date    = moment(item.front.date).format(defaults.dateFormat);
+    item.content = item.main;
+    item.key     = utils.makeShortKey(key);
 
-    cache.push(front);
+    cache.push(item);
 
-    return front;
+    return item;
 }

@@ -46,32 +46,33 @@ module.exports = function (config) {
             if (isPartial(key)) {
                 coderBlog.populateCache(key, files[key]);
             } else {
-                var url;
+                var item;
                 if (isPost(key)) {
-                    url = coderBlog.addPost(key, files[key], config).url;
+                    item = coderBlog.addPost(key, files[key], config);
                 }
                 if (isPage(key)) {
-                    url = coderBlog.addPage(key, files[key], config).url;
+                    item = coderBlog.addPage(key, files[key], config);
                 }
-                queue.push({
-                    key: key,
-                    url: url
-                });
+                queue.push(item);
             }
         });
 
-        _.each(queue, function (item) {
-            var fileName = coderBlog.makeFilename(item.key);
-            promises.push(buildOne(stream, files[item.key], item.url, config));
-        });
+//        console.log(queue);
 
-        Q.all(promises).then(function (err, out) {
-            coderBlog.clearCache();
-            cb();
-        }).catch(function (err) {
-            gutil.log(coderBlog.logger.compile("%Cwarn:" + err));
-            cb(null);
-        })
+        _.each(queue, function (item) {
+//            console.log(item);
+            var fileName = coderBlog.makeFilename(item.key);
+            console.log(item.url);
+//            promises.push(buildOne(stream, files[item.key], item.url, config));
+        });
+//
+//        Q.all(promises).then(function (err, out) {
+//            coderBlog.clearCache();
+//            cb();
+//        }).catch(function (err) {
+//            gutil.log(coderBlog.logger.compile("%Cwarn:" + err));
+//            cb(null);
+//        })
     });
 };
 
