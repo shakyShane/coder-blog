@@ -120,7 +120,6 @@ var utils = {
         var shortKey = utils.makeShortKey(key);
 
         return shortKey.replace(/(md|markdown)$/i, "html");
-
     },
     /**
      * @param key

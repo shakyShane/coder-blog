@@ -14,8 +14,9 @@ var log   = require("./logger");
 /**
  * 3rd Party libs
  */
-var Q     = require("q");
-var _     = require("lodash");
+var Q      = require("q");
+var _      = require("lodash");
+var moment = require("moment");
 
 /**
  * Dust for awesome templates
@@ -60,7 +61,8 @@ var pages    = [];
 var defaults = {
     configFile: "./_config.yml",
     markdown: true,
-    highlight: true
+    highlight: true,
+    dateFormat: "LL" // http://momentjs.com/docs/#/utilities/
 };
 
 module.exports.cache = cache;
@@ -199,9 +201,17 @@ function hasFrontMatter(file) {
 function readFrontMatter(file) {
     if (/^---\n/.test(file)) {
         var end = file.search(/\n---\n/);
-        if (end != -1) return {front: yaml.load(file.slice(4, end + 1)) || {}, main: file.slice(end + 5)};
+        if (end != -1) {
+            return {
+                front: yaml.load(file.slice(4, end + 1)) || {},
+                main: file.slice(end + 5)
+            };
+        }
     }
-    return {front: {}, main: file};
+    return {
+        front: {},
+        main: file
+    };
 }
 
 /**
@@ -229,6 +239,9 @@ function getData(content, data, config) {
     var parsedContents  = readFrontMatter(content);
     var includeResolver = getCacheResolver(data, "include");
     var snippetResolver = getCacheResolver(data, "snippet");
+
+    data.dateObj        = parsedContents.front.date;
+    data.date           = moment(data.dateObj).format(config.dateFormat);
 
     data.page           = parsedContents.front;
     data.post           = parsedContents.front;

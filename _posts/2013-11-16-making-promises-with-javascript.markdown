@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Making Promises with Javascript."
-date:   2013-11-16 20:51:39
+date:   2013-11-16
 categories: javascript
 ---
 

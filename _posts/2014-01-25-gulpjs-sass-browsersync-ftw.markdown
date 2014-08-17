@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "GulpJS + SASS + BrowserSync ftw"
-date:   2014-01-25 20:51:39
+date:   2014-01-25
 categories: javascript nodejs
 ---
 
