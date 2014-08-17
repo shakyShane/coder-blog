@@ -9,7 +9,19 @@
 
 <main class="page-content">
     <div class="container">
-        {#content /}
+        <div class="post">
+
+            <header class="post-header">
+                <h1>{post.title}</h1>
+                <p class="meta">{post.date}</p>
+            </header>
+
+            <article class="post-content">
+
+                {#content /}
+
+            </article>
+        </div>
     </div>
 </main>
 
