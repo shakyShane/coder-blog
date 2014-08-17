@@ -1,26 +1,39 @@
-var fs         = require("fs");
-var path       = require("path");
-var Q          = require("q");
-var _          = require("lodash");
-var merge      = require("opt-merger").merge;
+/**
+ * Core modules
+ */
+var fs    = require("fs");
+var path  = require("path");
 
+/**
+ * Lib
+ */
+var utils = require("./utils");
+module.exports.utils = utils;
+var log   = require("./logger");
+
+/**
+ * 3rd Party libs
+ */
+var Q     = require("q");
+var _     = require("lodash");
 
 /**
  * Dust for awesome templates
- * @type {dust|exports}
  */
-var dust     = require("dustjs-linkedin");
+var dust  = require("dustjs-linkedin");
+/**
+ * Make Dust templates retain whitespace
+ */
+dust.optimizers.format = function(ctx, node) { return node; };
 dust.isDebug = true;
 
 /**
  * Yaml parsing
- * @type {yaml|exports}
  */
 var yaml     = require("js-yaml");
 
 /**
  * Markdown parsing
- * @type {marked|exports}
  */
 var marked    = require('marked');
 
@@ -31,43 +44,19 @@ var highlight  = require('highlight.js');
 
 /**
  * tfunk for terminal colours
- * @type {compile|exports}
  */
 var tfunk    = require("tfunk");
-var logLevel = "warn"; // debug, error, warn
-var compiler = new tfunk.Compiler({
-    prefix: "[%Cmagenta:CoderBlog%R] ",
-    custom: {
-        "error": "chalk.bgRed.white",
-        "warn": "chalk.red"
-    }
-});
-
-var debugPrefix = tfunk("[%Cmagenta:CoderBlog%R:%Ccyan:DEBUG%R] - ");
-
-//
-var log = function (level, msg, vars) {
-
-    var prefix = "";
-    if ((level === "debug" || level === "warn") && (logLevel === "debug")) {
-        console.log(debugPrefix + msg);
-    }
-};
-
-module.exports.log    = log;
-module.exports.logger = compiler;
 
 /**
- * @param level
+ * Caches
  */
-module.exports.setLogLevel = function (level) {
-    logLevel = level;
-};
-
 var cache    = {};
 var posts    = [];
 var pages    = [];
 
+/**
+ * Default configuration
+ */
 var defaults = {
     configFile: "./_config.yml",
     markdown: true,
@@ -76,28 +65,12 @@ var defaults = {
 
 module.exports.cache = cache;
 
-/**
- * Make Dust templates retain whitespace
- * @param ctx
- * @param node
- * @returns {*}
- */
-dust.optimizers.format = function(ctx, node) { return node; };
 
 /**
- *
- * @param filePath
- * @returns {string}
- */
-function makeFsPath(filePath) {
-    return process.cwd() + "/_" + filePath;
-}
-
-/**
- * @param {} filePath
+ * Get a file from the cache, or alternative look it up on FS from CWD as base
+ * @param {String} filePath - {short-key from cache}
  * @param {Function} [transform]
- * @param {Boolean} [allowEmpty] - should file lookups be allowed to return an empty strign?
- * @returns {*}
+ * @param {Boolean} [allowEmpty] - should file look ups be allowed to return an empty string?
  */
 function getFile(filePath, transform, allowEmpty) {
 
@@ -118,7 +91,7 @@ function getFile(filePath, transform, allowEmpty) {
 
     try {
         log("debug", tfunk("%Cyellow:File System access%R for: " + filePath));
-        content = fs.readFileSync(makeFsPath(filePath), "utf-8");
+        content = fs.readFileSync(utils.makeFsPath(filePath), "utf-8");
         exports.populateCache(filePath,
             _.isFunction(transform)
                 ? transform(content)
@@ -138,62 +111,11 @@ function getFile(filePath, transform, allowEmpty) {
 }
 
 /**
- *
- */
-function isInclude(path) {
-    return path.match(/^includes/);
-}
-/**
- *
- */
-function isLayout(path) {
-    return path.match(/^layouts/);
-}
-/**
- *
- */
-function isSnippet(path) {
-    return path.match(/^snippets/);
-}
-
-/**
- * Include path has a special case for html files, they can be provided
- * without the extension
- * @param arguments
- * @param name
- */
-function getIncludePath(name) {
-
-    if (name.match(/html$/)) {
-        return "includes/" + name;
-    }
-    return "includes/" + name + ".html";
-}
-
-/**
- * @param arguments
- * @param name
- */
-function getSnippetPath(name) {
-    return "snippets/" + name;
-}
-
-/**
- * @param arguments
- * @param name
- */
-function getLayoutPath(name) {
-    return "layouts/" + (name || "default") + ".html";
-}
-
-/**
- * @param config
  * @param data
  */
-function compile(config, data) {
+function compile(data) {
 
-    var current     = getFile(getLayoutPath(data.page.layout));
-    data.config = config;
+    var current     = getFile(utils.getLayoutPath(data.page.layout));
 
     return makeFile(current, data);
 }
@@ -312,7 +234,6 @@ function getData(content, data, config) {
     data.post           = parsedContents.front;
     data.content        = parsedContents.main;
     data.parsedContent  = parsedContents;
-//    data.markdown       = processMardownContent(data.content, config);
     data.posts          = preparePosts(posts, data, config);
     data.pages          = pages;
 
@@ -324,19 +245,6 @@ function getData(content, data, config) {
 
     return data;
 }
-
-/**
- * @param file
- * @returns {*}
- */
-function getYaml(file) {
-    try {
-        return yaml.safeLoad(fs.readFileSync(file, "utf-8"));
-    } catch (e) {
-        console.log(e);
-    }
-}
-module.exports.getYaml = getYaml;
 
 module.exports.clearCache = function () {
     log("debug", "Clearing all caches, (posts, pages, includes, partials)");
@@ -359,13 +267,6 @@ function prepareContent(out, data, config) {
 }
 
 /**
- * @param content
- */
-function wrapSnippet(content) {
-    return "```{params.lang}\n" + content + "\n```";
-}
-
-/**
  * @param path
  * @param data
  * @param chunk
@@ -382,7 +283,7 @@ function getSnippetInclude(path, data, chunk) {
         );
     } else {
         return chunk.map(function(chunk) {
-            return makeFile(wrapSnippet(file), data)
+            return makeFile(utils.wrapSnippet(file), data)
                 .then(function (out) {
                     chunk.end(out);
                 });
@@ -426,31 +327,9 @@ function getCacheResolver(data, type) {
         });
 
         return type === "include"
-            ? getInclude(getIncludePath(params.src), data, chunk)
-            : getSnippetInclude(getSnippetPath(params.src), data, chunk);
+            ? getInclude(utils.getIncludePath(params.src), data, chunk)
+            : getSnippetInclude(utils.getSnippetPath(params.src), data, chunk);
     }
-}
-
-/**
- * Allow highlighting within code fences, requiring NO additional syntax
- * @param content
- * @returns {*|XML|string|void}
- */
-function escapeCodeFences(content) {
-    return content.replace(/```([a-z-]+)\n([\s\S]+?)```/gi, function () {
-        return "{`\n```" + arguments[1] + "\n" + arguments[2] + "\n```\n`}";
-    });
-}
-
-/**
- * Ensure that any inline code snippets are escaped
- * @param content
- * @returns {*|XML|string|void}
- */
-function escapeInlineCode(content) {
-    return content.replace(/`(?!`)(.+?)`/, function () {
-        return "{``" + arguments[1] + "``}";
-    })
 }
 
 /**
@@ -461,22 +340,23 @@ function escapeInlineCode(content) {
  */
 module.exports.compileOne = function (string, config, cb) {
 
-    var data = {
-        site: config.siteConfig || getYaml(defaults.configFile)
-    };
-
     config = _.merge(_.cloneDeep(defaults), config);
 
+    var data = {
+        site: config.siteConfig || utils.getYaml(defaults.configFile),
+        config: config
+    };
+
     if (!_.isUndefined(config.logLevel)) {
-        exports.setLogLevel(config.logLevel);
+        log.setLogLevel(config.logLevel);
     }
 
     if (hasFrontMatter(string)) {
 
         data = getData(string, data, config);
 
-        var escapedContent = escapeCodeFences(data.content);
-            escapedContent = escapeInlineCode(escapedContent);
+        var escapedContent = utils.escapeCodeFences(data.content);
+            escapedContent = utils.escapeInlineCode(escapedContent);
 
         makeFile(escapedContent, data)
             .then(render)
@@ -491,7 +371,7 @@ module.exports.compileOne = function (string, config, cb) {
                 return chunk.write(fullContent);
             };
 
-            compile(config, data)
+            compile(data)
                 .then(function (out) {
                     cb(null, out);
                 })
@@ -502,42 +382,13 @@ module.exports.compileOne = function (string, config, cb) {
     }
 };
 
-
-/**
- * Shortkey for includes
- * @param key
- * @returns {*}
- */
-function makeShortKey(key) {
-    return key.replace(/(.+?)?_((includes|layouts|snippets|posts|pages)(.+))/, "$2");
-}
-module.exports.makeShortKey = makeShortKey;
-
-/**
- * Partial key for includes (firstcome, first serve)
- * @param {String} key - eg: includes/blog/head.html
- * @returns {*}
- */
-function makePartialKey(key) {
-
-    if (!key) {
-        return;
-    }
-
-    return path.basename(key)
-        .replace(
-            path.extname(key), ""
-        );
-}
-module.exports.makePartialKey = makePartialKey;
-
 /**
  * Populate the cache
  */
 module.exports.populateCache = function (key, value) {
 
-    var shortKey   = makeShortKey(key);
-    var partialKey = makePartialKey(shortKey);
+    var shortKey   = utils.makeShortKey(key);
+    var partialKey = utils.makePartialKey(shortKey);
 
     if (shortKey) {
         log("debug", "Adding to cache: " + shortKey);
@@ -566,9 +417,9 @@ function checkCache(key) {
     return cache[key]
         ? cache[key]
         : (function () {
-        return _.find(cache, function (value, cacheKey) {
-            return _.contains(cacheKey, key);
-        });
+            return _.find(cache, function (value, cacheKey) {
+                return _.contains(cacheKey, key);
+            });
     })();
 }
 
@@ -577,6 +428,10 @@ function checkCache(key) {
  */
 module.exports.checkCache = checkCache;
 
+/**
+ * Allow api users to retrieve the cache.
+ * @returns {{partials: {}, posts: Array, pages: Array}}
+ */
 module.exports.getCache = function () {
     return {
         partials: cache,
@@ -586,51 +441,33 @@ module.exports.getCache = function () {
 };
 
 /**
- * @param key
- * @param front
- * @param config
- * @returns {*}
+ *
  */
-function makePostUrl(key, front, config) {
-
-    if (config && config.permalink) {
-        return config.permalink;
-    }
-
-    var shortKey = makeShortKey(key);
-
-    return shortKey.replace(/(md|markdown)$/i, "html");
+function isInclude(path) {
+    return path.match(/^includes/);
 }
 
 /**
- * @param key
- * @param front
- * @param config
- * @returns {*}
+ *
  */
-function makePageUrl(key, front, config) {
-
-    if (config && config.permalink) {
-        return config.permalink;
-    }
-
-    var shortKey = makeShortKey(key);
-
-    return shortKey.replace(/(md|markdown)$/i, "html").replace(/^\//, "");
+function isLayout(path) {
+    return path.match(/^layouts/);
 }
+
+/**
+ *
+ */
+function isSnippet(path) {
+    return path.match(/^snippets/);
+}
+
 /**
  * @param key
  * @param string
  * @param [config]
  */
 module.exports.addPost = function (key, string, config) {
-
-    var front    = readFrontMatter(string);
-    front.url    = makePostUrl(key, front, config);
-    front.content = string;
-    posts.push(front);
-
-    return front;
+    return addItem(posts, "post", key, string, config);
 };
 
 /**
@@ -639,11 +476,27 @@ module.exports.addPost = function (key, string, config) {
  * @param [config]
  */
 module.exports.addPage = function (key, string, config) {
+    return addItem(pages, "page", key, string, config);
+};
+
+/**
+ * @param cache
+ * @param key
+ * @param string
+ * @param config
+ * @returns {*}
+ */
+function addItem(cache, type, key, string, config) {
 
     var front     = readFrontMatter(string);
-    front.url     = makePageUrl(key, front, config);
+    var urlMethod = type === "post"
+        ? "makePostUrl"
+        : "makePageUrl";
+
+    front.url     = utils[urlMethod](key, front, config);
     front.content = string;
-    pages.push(front);
+
+    cache.push(front);
 
     return front;
-};
+}

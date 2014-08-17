@@ -159,7 +159,6 @@ describe("Processing a file", function(){
         // NO POSTS ADDED
         coderBlog.populateCache("user/whatever/_includes/button.html", "<button>Sign up</button>");
         coderBlog.compileOne(post2, {}, function (err, out) {
-            console.log(out);
             assert.isTrue(_.contains(out, '<button>Sign up</button>'));
             done();
         });
