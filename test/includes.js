@@ -275,10 +275,30 @@ describe("Processing a file", function(){
 
          {#snippet src="function2.js" name="shane"/}
 
+         {post.date}
+
+         */});
+        var post3 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Highlight Helper"
+         date: 2013-11-14 20:51:39
+         ---
+
+         {page.title}
+
+         {#inc src="button" type="primary" text="Sign up"/}
+
+         {#snippet src="function2.js" name="shane"/}
+
+         {post.date}
+
          */});
 
         coderBlog.populateCache("_snippets/function2.js", 'var name = "shane"');
         var post = coderBlog.addPost("_posts/post2.md", post2, {});
+        coderBlog.addPost("_posts/post21.md", post3, {});
+
         coderBlog.compileOne(post, {siteConfig: {sitename: "(shakyShane)"}}, function (err, out) {
             assert.isTrue(_.contains(out, '<button class="button button--primary">Sign up</button>'));
             assert.isTrue(_.contains(out, '<code class="lang-js"><span class="hljs-keyword">var</span> name = <span class="hljs-string">"shane"</span>'));

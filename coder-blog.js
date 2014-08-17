@@ -242,6 +242,7 @@ function getData(front, data, config) {
 
     data.page           = front;
     data.post           = front;
+    data.post.date      = moment(front.date).format(config.dateFormat);
     data.posts          = preparePosts(posts, data, config);
     data.pages          = pages;
 
@@ -453,7 +454,7 @@ module.exports.populateCache = function (key, value) {
 /**
  * Check the cache for existing matches
  * @param key
- * @param partial
+ * @param [partial]
  * @returns {*}
  */
 function getFromCache(key, partial) {
@@ -551,13 +552,17 @@ function addItem(cache, type, key, string, config) {
     // Top level data for page/post
     item.key     = utils.makeShortKey(key);
 
-    var paths     = utils[urlMethod](item.key, item, config);
-    item.url      = paths.url;
-    item.filePath = paths.filePath;
-    item.date     = moment(item.front.date).format(defaults.dateFormat);
-    item.original = string;
+    var paths       = utils[urlMethod](item.key, item, config);
+    item.url        = paths.url;
+    item.filePath   = paths.filePath;
+    item.dateObj    = item.front.date;
+    item.original   = string;
 
     cache.push(item);
+
+    cache.sort(function (a, b) {
+        return b.dateObj.getTime() - a.dateObj.getTime();
+    });
 
     return item;
 }
