@@ -5,7 +5,7 @@ date:   2013-10-13
 categories: SASS CSS
 ---
 
-When using SASS, LESwS or Stylus it's easy to do things that bloat the resulting CSS.
+When using SASS, LESS or Stylus it's easy to do things that bloat the resulting CSS.
 
 > The following examples are using SASS, but the principles apply to any preprocessor
 
@@ -15,19 +15,18 @@ We'll use `inline-block` & `border-radius` as simple examples here.
 
 Nothing more annoying that IE7's treatment of inline-block. You've probably seen this littered around a project before
 
-{#hl lang="css"}
+```scss
 .box {
     display: inline-block;
     zoom: 1;
     *display: inline;
 }
-{/hl}
+```
 
 
 Ok it works, but it's three lines of code. With sass we could define a mixin & then use that anywhere we want the inline-block hack.
 
-```css
-/* define it */
+```scss
 @mixin inline-block(){
     display: inline-block;
     zoom: 1;
@@ -68,7 +67,7 @@ A **much** better way, is to extend the functionality of one class to another
 
 **SASS @extend**
 
-```css
+```scss
 .box {
     display: inline-block;
     zoom: 1;
@@ -147,7 +146,7 @@ Because `.inline-block` has only a single responsibility, we are not limited to 
 We can apply the same ideas when using mixins. Here's a perfectly valid use of a `@mixin`. (please note: for brevity, this is a very simplified example!)
 
 
-```css
+```scss
 /* define the mixin, with a default param */
 @mixin border-radius($value: 10px) {
     -webkit-border-radius: $value;
@@ -170,7 +169,7 @@ We can apply the same ideas when using mixins. Here's a perfectly valid use of a
 
 Nice! It's not great though & you probably know what's coming up here... What happens when `.box2` wants the same styles applying?
 
-```css
+```scss
 /* define the mixin, with a default param */
 @mixin border-radius($value: 10px) {
     -webkit-border-radius: $value;
@@ -202,7 +201,7 @@ Nice! It's not great though & you probably know what's coming up here... What ha
 
 I won't waste time showing you why you should **not** simply extend `.box` this time. Instead, let's just jump straight into the correct way to do this.
 
-```css
+```scss
 /* the way a ninja would handle this shit */
 @mixin border-radius($value: 10px) {
     -webkit-border-radius: $value;
@@ -238,7 +237,7 @@ I won't waste time showing you why you should **not** simply extend `.box` this 
 
 Don't forget, you get the good side-effect here too, you can drop that `.rounded-corners` class into your HTML as a modifier if you want & you still have the benefits of being about to change the size of your rounded-corners site-wide by changing a single value inside `.rounded-corners`
 
-```css
+```scss
 /* Change your rounder-corners across your entire site here */
 .rounded-corners {
     @include border-radius(20px);
@@ -249,7 +248,7 @@ Don't forget, you get the good side-effect here too, you can drop that `.rounded
 
 What if `.box2` wants rounded-corners, but they want to be a different size? Is this a good time to fall back to using `@include`? Perhaps like this?
 
-```css
+```scss
 /* Would a ninja do this ? */
 @mixin border-radius($value: 10px) {
     -webkit-border-radius: $value;
@@ -274,7 +273,7 @@ No.
 
 Because the EXACT same argument now applies to `.box2`. If another class wanted a border-radius of `20px`, then you'd have to call that mixin again & produce all the duplicate code.
 
-```css
+```scss
 /* generated CSS - not great! */
 .rounded-corners, .box {
   -webkit-border-radius: 6px;
@@ -296,7 +295,7 @@ When you need a slightly modified version & you envision it being re-used elsewh
 
 Here's the final example showing a better way to combine @extend & @mixin with different values.
 
-```css
+```scss
 @mixin border-radius($value: 10px) {
     -webkit-border-radius: $value;
     border-radius: $value;
@@ -319,7 +318,7 @@ Here's the final example showing a better way to combine @extend & @mixin with d
 
 **Which will generate this CSS**
 
-```css
+```scss
 .rounded-corners, .box {
   -webkit-border-radius: 6px;
   border-radius: 6px;
@@ -346,7 +345,7 @@ I got to the end of writing this article before realising that I havn't even men
 
 We've all used it when you want a parent element to correctly contain it's 'floated' children. 
 
-```css
+```scss
 /* the incorrect way */
 @mixin clearfix {
     &:before,
@@ -372,7 +371,7 @@ We've all used it when you want a parent element to correctly contain it's 'floa
 
 At this point in the post, I'm sure I don't have to explain why this is bad, just make sure you always do it like this instead.
 
-```css
+```scss
 /* the correct way */
 @mixin clearfix {
     &:before,

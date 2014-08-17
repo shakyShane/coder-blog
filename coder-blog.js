@@ -231,20 +231,17 @@ function preparePosts(posts) {
 
 /**
  * This set's up the 'data' object with all the info any templates/includes might need.
- * @param {String} content
+ * @param {Object} front
  * @param {Object} config - Site config
  * @param {Object} data - Any initial data
  */
-function getData(content, data, config) {
+function getData(front, data, config) {
 
-    var parsedContents  = readFrontMatter(content);
     var includeResolver = getCacheResolver(data, "include");
     var snippetResolver = getCacheResolver(data, "snippet");
 
-    data.page           = parsedContents.front;
-    data.post           = parsedContents.front;
-    data.content        = parsedContents.content;
-    data.parsedContent  = parsedContents;
+    data.page           = front;
+    data.post           = front;
     data.posts          = preparePosts(posts, data, config);
     data.pages          = pages;
 
@@ -279,7 +276,7 @@ function snippetHelper(chunk, context, bodies, params) {
     }
     // If there's no block, just return the chunk
     return chunk;
-};
+}
 
 module.exports.clearCache = function () {
     log("debug", "Clearing all caches, (posts, pages, includes, partials)");
@@ -369,11 +366,11 @@ function getCacheResolver(data, type) {
 
 /**
  * Compile a single file
- * @param string
+ * @param item
  * @param config
  * @param cb
  */
-module.exports.compileOne = function (string, config, cb) {
+module.exports.compileOne = function (item, config, cb) {
 
     config = _.merge(_.cloneDeep(defaults), config);
 
@@ -386,11 +383,12 @@ module.exports.compileOne = function (string, config, cb) {
         log.setLogLevel(config.logLevel);
     }
 
-    if (hasFrontMatter(string)) {
+    if (item.front) {
 
-        data = getData(string, data, config);
+        data = getData(item.front, data, config);
+        data.content = item.content;
 
-        var escapedContent = utils.escapeCodeFences(data.content);
+        var escapedContent = utils.escapeCodeFences(item.content);
             escapedContent = utils.escapeInlineCode(escapedContent);
 
         makeFile(escapedContent, data)
@@ -527,13 +525,16 @@ function addItem(cache, type, key, string, config) {
     var item     = readFrontMatter(string);
     var urlMethod = type === "post"
         ? "makePostUrl"
-        : "makePageUrl";
+        : "makePostUrl";
 
     // Top level data for page/post
-    item.url     = utils[urlMethod](key, item, config);
-    item.date    = moment(item.front.date).format(defaults.dateFormat);
-    item.content = item.main;
     item.key     = utils.makeShortKey(key);
+
+    var paths     = utils[urlMethod](item.key, item, config);
+    item.url      = paths.url;
+    item.filePath = paths.filePath;
+    item.date     = moment(item.front.date).format(defaults.dateFormat);
+    item.original = string;
 
     cache.push(item);
 

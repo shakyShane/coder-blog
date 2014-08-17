@@ -57,33 +57,29 @@ module.exports = function (config) {
             }
         });
 
-//        console.log(queue);
-
         _.each(queue, function (item) {
-//            console.log(item);
-            var fileName = coderBlog.makeFilename(item.key);
-            console.log(item.url);
-//            promises.push(buildOne(stream, files[item.key], item.url, config));
+
+            promises.push(buildOne(stream, item, config));
         });
 //
-//        Q.all(promises).then(function (err, out) {
-//            coderBlog.clearCache();
-//            cb();
-//        }).catch(function (err) {
-//            gutil.log(coderBlog.logger.compile("%Cwarn:" + err));
-//            cb(null);
-//        })
+        Q.all(promises).then(function (err, out) {
+            coderBlog.clearCache();
+            cb();
+        }).catch(function (err) {
+            gutil.log(coderBlog.logger.compile("%Cwarn:" + err));
+            cb(null);
+        })
     });
 };
 
 /**
  *
  */
-function buildOne(stream, contents, fileName, config) {
+function buildOne(stream, item, config) {
 
     var deferred = Q.defer();
 
-    coderBlog.compileOne(contents, config, function (err, out) {
+    coderBlog.compileOne(item, config, function (err, out) {
 
         if (err) {
             deferred.reject(err);
@@ -91,7 +87,7 @@ function buildOne(stream, contents, fileName, config) {
             stream.push(new File({
                 cwd:  "./",
                 base: "./",
-                path: fileName,
+                path: item.filePath,
                 contents: new Buffer(out)
             }));
 

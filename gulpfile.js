@@ -40,7 +40,7 @@ gulp.task("browser-sync", function () {
 /**
  * Default task
  */
-gulp.task("default", ["build-blog", "browser-sync"], function () {
+gulp.task("default", ["build-blog", "sass", "browser-sync"], function () {
     gulp.watch([
         "_layouts/**/*.html",
         "_includes/**/*.html",
@@ -133,7 +133,13 @@ gulp.task("build-blog", function () {
         "_layouts/*.html",
         "*.html"
     ])
-    .pipe(coderBlog({env: "dev", highlight: true, markdown: true, logLevel: "warn"}))
+    .pipe(coderBlog({
+            env: "dev",
+            highlight: true,
+            markdown: true,
+            logLevel: "warn",
+            urlFormat: "/blog/:filename"
+        }))
     .pipe(gulp.dest("_site"));
 });
 

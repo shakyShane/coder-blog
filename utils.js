@@ -118,19 +118,61 @@ var utils = {
     },
     /**
      * @param key
-     * @param front
-     * @param config
-     * @returns {*}
+     * @returns {*|XML|string|void}
      */
-    makePostUrl: function (key, front, config) {
+    getBaseName: function (key) {
+        return path.basename(key).replace(path.extname(key), "");
+    },
+    /**
+     * @param key
+     * @param item
+     * @param config
+     * @returns {{filePath: *, url: *}}
+     */
+    makePostUrl: function (key, item, config) {
 
-        if (config && config.permalink) {
-            return config.permalink;
+        // Default is just to rename md/markdown to html
+        var basename = utils.getBaseName(key);
+        var url      = key.replace(/(md|markdown)$/, "html");
+
+        if (key.match(/(.+)\//)){
+
+            if (config.urlFormat) {
+
+                url = config.urlFormat
+                    .replace(":filename", basename);
+
+                var filePath = url + "/index.html";
+
+                return {
+                    filePath: utils.completePath(filePath),
+                    url: utils.completeUrl(url)
+                }
+            }
         }
 
-        var shortKey = utils.makeShortKey(key);
-
-        return shortKey.replace(/(md|markdown)$/i, "html");
+        return {
+            filePath: utils.completePath(url),
+            url: utils.completeUrl(url)
+        }
+    },
+    /**
+     * Add forward slash if it doesn't yet exist.
+     * @param current
+     * @returns {*}
+     */
+    completeUrl: function (current) {
+        return current.match(/^\//)
+            ? current
+            : "/" + current;
+    },
+    /**
+     * Add forward slash if it doesn't yet exist.
+     * @param current
+     * @returns {*}
+     */
+    completePath: function (current) {
+        return current.replace(/^\//, "");
     },
     /**
      * @param key
