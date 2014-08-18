@@ -81,7 +81,7 @@ describe("Processing a Markdown file", function(){
         coderBlog.addPost("_posts/post2.md", post2, {});
 
         coderBlog.compileOne("_posts/post2.md", {}, function (err, out) {
-//            console.log(coderBlog.getCache());
+//            console.log(coderBlog.getCache().posts);
             done();
         });
     });

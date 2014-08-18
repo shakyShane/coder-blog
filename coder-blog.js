@@ -7,9 +7,11 @@ var path  = require("path");
 /**
  * Lib
  */
-var utils = require("./utils");
+var utils = require("./lib/utils");
+var log   = require("./lib/logger");
+var Post  = require("./lib/post").Post;
+
 module.exports.utils = utils;
-var log   = require("./logger");
 
 /**
  * 3rd Party libs
@@ -184,35 +186,6 @@ function processMardownContent(string, config) {
  */
 function highlightSnippet(code, lang, callback) {
     return highlight.highlight(lang || "js", code).value;
-}
-
-/**
- * Check if file has front matter
- * @param file
- * @returns {boolean}
- */
-function hasFrontMatter(file) {
-    return file.match(/^---\n/);
-}
-
-/**
- * @param file
- * @returns {*}
- */
-function readFrontMatter(file) {
-    if (/^---\n/.test(file)) {
-        var end = file.search(/\n---\n/);
-        if (end != -1) {
-            return {
-                front: yaml.load(file.slice(4, end + 1)) || {},
-                content: file.slice(end + 5)
-            };
-        }
-    }
-    return {
-        front: {},
-        content: file
-    };
 }
 
 /**
@@ -522,7 +495,7 @@ function isSnippet(path) {
  * @param [config]
  */
 module.exports.addPost = function (key, string, config) {
-    return addItem(posts, "post", key, string, config);
+    return addItem(posts, key, string, config);
 };
 
 /**
@@ -531,40 +504,31 @@ module.exports.addPost = function (key, string, config) {
  * @param [config]
  */
 module.exports.addPage = function (key, string, config) {
-    return addItem(pages, "page", key, string, config);
+    return addItem(pages, key, string, config);
 };
 
 /**
  * @param cache
- * @param type
  * @param key
  * @param string
  * @param config
  * @returns {*}
  */
-function addItem(cache, type, key, string, config) {
+function addItem(cache, key, string, config) {
 
-    var item     = readFrontMatter(string);
-    var urlMethod = type === "post"
-        ? "makePostUrl"
-        : "makePostUrl";
+    var post;
 
-    // Top level data for page/post
-    item.key        = utils.makeShortKey(key);
+    if (post = getFromCache(key)) {
+        return post;
+    }
 
-    var paths       = utils[urlMethod](item.key, item, config);
-    item.url        = paths.url;
-    item.filePath   = paths.filePath;
-    item.dateObj    = item.front.date;
-    item.timestamp  = item.dateObj ? item.dateObj.getTime() : false;
-    item.original   = string;
+    post = new Post(key, string, config);
 
-    cache.push(item);
+    cache.push(post);
 
     cache.sort(function (a, b) {
-
         return b.timestamp - a.timestamp;
     });
 
-    return item;
+    return post;
 }

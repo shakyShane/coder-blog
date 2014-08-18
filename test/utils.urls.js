@@ -1,6 +1,6 @@
 var assert      = require("chai").assert;
 var _           = require("lodash");
-var makePostUrl = require("../utils").makePostUrl;
+var makePostUrl = require("../lib/utils").makePostUrl;
 var tests = [
     {
         item: {},
@@ -68,7 +68,7 @@ var tests = [
 describe("Creating urls", function(){
     tests.forEach(function (item) {
         it(item.message, function(){
-            var actual   = makePostUrl(item.key, item.item, item.config);
+            var actual   = makePostUrl(item.key, item.config);
             assert.deepEqual(actual, item.expected, item.message);
         });
     });

@@ -59,6 +59,7 @@ describe("Processing a file", function(){
          ---
          layout: page-test
          title: "Homepage"
+         date: 2014-04-10
          ---
 
          {#posts}
