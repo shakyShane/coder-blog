@@ -58,6 +58,7 @@ describe("Ordering posts by date", function(){
          ---
          layout: post-test
          title: "Homepage"
+         date: 2014-04-10
          ---
 
          #Welcome to my blog

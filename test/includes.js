@@ -69,6 +69,7 @@ describe("Processing a file", function(){
          ---
          layout: page-test
          title: "Homepage"
+         date: 2014-04-10
          markdown: "false"
          ---
 
@@ -89,7 +90,7 @@ describe("Processing a file", function(){
          ---
          layout: post-test
          title: "Blogging is coolio"
-         date: 2013-11-13 20:51:39
+         date: 2013-11-13
          ---
 
          #{page.title}
@@ -99,6 +100,7 @@ describe("Processing a file", function(){
          ---
          layout: page-test
          title: "Homepage"
+         date: 2014-04-10
          ---
 
          #Welcome to my blog

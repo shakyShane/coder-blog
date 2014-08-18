@@ -22,24 +22,13 @@ var postLayout = multiline.stripIndent(function(){/*
  */});
 
 var pageLayout = multiline.stripIndent(function(){/*
-<!DOCTYPE html>
-<html>
-{#inc src="head.html" /}
-<body class="page">
-{#content /}
-</body>
-</html>
-*/});
-
-var post1 = multiline.stripIndent(function(){/*
- ---
- layout: post-test
- title: "Function Composition in Javascript."
- date: 2013-11-13 20:51:39
- ---
-
- Hi there {page.title}
-
+ <!DOCTYPE html>
+ <html>
+ {#inc src="head.html" /}
+ <body class="page">
+ {#content /}
+ </body>
+ </html>
  */});
 
 describe("Processing a Markdown file", function(){
@@ -62,7 +51,6 @@ describe("Processing a Markdown file", function(){
 
         // Add layouts to cache
         coderBlog.populateCache("_layouts/post-test.html", postLayout);
-        coderBlog.populateCache("_layouts/page-test.html", pageLayout);
 
         // Add HEAD section to cache
         coderBlog.populateCache("_includes/head.html", "<head><title>{page.title} {site.sitename}</title></head>");
@@ -70,23 +58,30 @@ describe("Processing a Markdown file", function(){
 
     it("Can use site variables", function(done) {
 
-        var index = multiline.stripIndent(function(){/*
+        var post1 = multiline.stripIndent(function(){/*
          ---
          layout: post-test
          title: "Homepage"
-         date: 2014-04-10
-         markdown: "false"
+         date: 2013-11-13
          ---
 
-         {#highlight}
-         var shane = "human";
-         {/highlight}
+         post1
+
+         */});
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "About us"
+         date: 2013-11-14
+         ---
+
          */});
 
+        coderBlog.addPost("_posts/post1.md", post1, {});
+        coderBlog.addPost("_posts/post2.md", post2, {});
 
-        var post = coderBlog.addPost("_posts/post2.md", index, {});
-        coderBlog.compileOne(post, {}, function (err, out) {
-            assert.isTrue(_.contains(out, '<pre><code><span class="hljs-keyword">var</span> shane'));
+        coderBlog.compileOne("_posts/post2.md", {}, function (err, out) {
+//            console.log(coderBlog.getCache());
             done();
         });
     });

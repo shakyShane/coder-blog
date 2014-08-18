@@ -74,6 +74,7 @@ describe("Processing a Markdown file", function(){
          ---
          layout: page-test
          title: "Homepage"
+         date: 2014-04-10
          markdown: "false"
          ---
 
@@ -97,6 +98,7 @@ describe("Processing a Markdown file", function(){
          layout: post-test
          title: "Homepage"
          randomVar: "Kittenz"
+         date: 2014-04-10
          ---
 
          #{page.title} {?posts}I have written before..{/posts}
@@ -129,6 +131,7 @@ describe("Processing a Markdown file", function(){
          layout: post-test
          title: "Homepage"
          randomVar: "Kittenz"
+         date: 2014-04-10
          ---
 
          `var shane = function(){ return; } `
@@ -153,6 +156,7 @@ describe("Processing a Markdown file", function(){
          title: "Homepage"
          randomVar: "Kittenz"
          lang: "js"
+         date: 2014-04-10
          ---
 
          {#snippet src="function.js" lang=page.lang/}
@@ -175,6 +179,7 @@ layout: post-test
 title: "Homepage"
 randomVar: "Kittenz"
 lang: "js"
+date: 2014-04-10
 ---
 
 {post.title}

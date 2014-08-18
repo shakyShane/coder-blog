@@ -550,18 +550,20 @@ function addItem(cache, type, key, string, config) {
         : "makePostUrl";
 
     // Top level data for page/post
-    item.key     = utils.makeShortKey(key);
+    item.key        = utils.makeShortKey(key);
 
     var paths       = utils[urlMethod](item.key, item, config);
     item.url        = paths.url;
     item.filePath   = paths.filePath;
     item.dateObj    = item.front.date;
+    item.timestamp  = item.dateObj ? item.dateObj.getTime() : false;
     item.original   = string;
 
     cache.push(item);
 
     cache.sort(function (a, b) {
-        return b.dateObj.getTime() - a.dateObj.getTime();
+
+        return b.timestamp - a.timestamp;
     });
 
     return item;
