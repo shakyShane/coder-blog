@@ -4,7 +4,7 @@
   "description": "",
   "main": "coder-blog.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
@@ -20,7 +20,9 @@
     "gulp-sass": "^0.7.2",
     "gulp-autoprefixer": "0.0.8",
     "mocha": "*",
-    "sinon": "^1.10.3"
+    "sinon": "^1.10.3",
+    "chai": "^1.9.1",
+    "multiline": "^1.0.0"
   },
   "dependencies": {
     "dustjs-linkedin": "^2.4.0",
