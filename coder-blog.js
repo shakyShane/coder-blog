@@ -7,9 +7,11 @@ var path  = require("path");
 /**
  * Lib
  */
-var utils = require("./lib/utils");
-var log   = require("./lib/logger");
-var Post  = require("./lib/post").Post;
+var utils    = require("./lib/utils");
+var log      = require("./lib/logger");
+var Post     = require("./lib/post").Post;
+var Partial  = require("./lib/partial").Partial;
+var Cache    = require("./lib/cache").Cache;
 
 module.exports.utils = utils;
 
