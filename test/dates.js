@@ -75,8 +75,9 @@ describe("Ordering posts by date", function(){
         var page = coderBlog.addPage("index.html", index, {});
 
         coderBlog.compileOne(page, {}, function (err, out) {
-            assert.equal(coderBlog.getCache().posts[0].front.title, "Post 2");
-            assert.equal(coderBlog.getCache().posts[1].front.title, "Post 1");
+            var posts = coderBlog.getCache().posts();
+            assert.equal(posts[0].front.title, "Post 1");
+            assert.equal(posts[1].front.title, "Post 2");
             done();
         });
     });

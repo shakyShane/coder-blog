@@ -53,7 +53,7 @@ describe("Processing a file", function(){
         coderBlog.populateCache("_includes/head.html", "<head><title>{page.title} {site.sitename}</title></head>");
     });
 
-    it("Knows about posts", function(done) {
+    it.skip("Knows about posts", function(done) {
 
         var index = multiline.stripIndent(function(){/*
          ---

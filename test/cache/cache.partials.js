@@ -90,7 +90,6 @@ describe("Adding Partials to the Cache", function(){
         coderBlog.addPost("_posts/post2.md", post2, {});
 
         coderBlog.compileOne("posts/post2.md", {}, function (err, out) {
-            console.log(out);
             assert.isTrue(_.contains(out, '<head><title>Homepage 2</title></head>'));
             assert.isTrue(_.contains(out, '<footer>Date: April 10, 2014</footer>'));
             assert.isTrue(_.contains(out, '<li>Homepage</li>'));

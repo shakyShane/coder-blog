@@ -146,7 +146,7 @@ function makeFile(template, data, cb) {
 
     dust.render(id, data, function (err, out) {
         if (err) {
-            cb(null);
+            cb(err);
         } else {
             cb(null, out);
         }

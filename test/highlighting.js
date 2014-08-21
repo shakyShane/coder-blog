@@ -9,17 +9,17 @@ dust.isDebug = true;
 dust.optimizers.format = function(ctx, node) { return node; };
 
 var coderBlog = require("../coder-blog");
-coderBlog.setLogLevel("debug");
+coderBlog.setLogLevel("warn");
 
 var postLayout = multiline.stripIndent(function(){/*
- <!DOCTYPE html>
- <html>
- {>head /}
- <body class="post">
- {#content /}
- </body>
- </html>
- */});
+<!DOCTYPE html>
+<html>
+{>head /}
+<body class="post">
+{#content /}
+</body>
+</html>
+*/});
 
 var pageLayout = multiline.stripIndent(function(){/*
 <!DOCTYPE html>
@@ -32,17 +32,17 @@ var pageLayout = multiline.stripIndent(function(){/*
 */});
 
 var post1 = multiline.stripIndent(function(){/*
- ---
- layout: post-test
- title: "Function Composition in Javascript."
- date: 2013-11-13 20:51:39
- ---
+---
+layout: post-test
+title: "Function Composition in Javascript."
+date: 2013-11-13 20:51:39
+---
 
- Hi there {page.title}
+Hi there {page.title}
 
- */});
+*/});
 
-describe.only("Processing a Markdown file", function(){
+describe("Processing a Markdown file", function(){
 
     var fsStub;
 
@@ -83,10 +83,6 @@ describe.only("Processing a Markdown file", function(){
 
         var post = coderBlog.addPost("_posts/post2.md", index, {});
 
-        coderBlog.compileOne(post, {}, function (err, out) {
-            console.log(out);
-//            assert.isTrue(_.contains(out, '<pre><code><span class="hljs-keyword">var</span> shane'));
-            done();
-        });
+        coderBlog.compileOne(post, {}, done);
     });
 });

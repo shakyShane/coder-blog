@@ -42,7 +42,7 @@ Hi there {page.title}
 
 */});
 
-describe("Processing a Markdown file", function(){
+describe.skip("Processing a Markdown file", function(){
 
     var fsStub;
 
