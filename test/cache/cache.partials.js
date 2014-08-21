@@ -1,9 +1,12 @@
 var _             = require("lodash");
 var assert        = require("chai").assert;
 var multiline     = require("multiline");
+var sinon         = require("sinon");
+var fs            = require("fs");
 
-var Cache   = require("../../lib/cache").Cache;
-var Partial = require("../../lib/partial").Partial;
+var Cache     = require("../../lib/cache").Cache;
+var coderBlog = require("../../coder-blog");
+var Partial   = require("../../lib/partial").Partial;
 
 describe("Adding Partials to the Cache", function(){
     var _cache;
@@ -22,5 +25,72 @@ describe("Adding Partials to the Cache", function(){
 
         var item     = _cache.addPartial([partial1, partial2]).find("styles");
         assert.equal(item.content, "CSS content");
+    });
+    it("adding to cache accessible to dust", function(done){
+
+        var layout = multiline.stripIndent(function(){/*
+         <!DOCTYPE html>
+         <html>
+         {>head /}
+         <body class="post">
+
+         {#content /}
+
+         {#inc src="date" /}
+
+         {#inc src="partials/footer.html" url="http://shakyshane.com" /}
+
+         {#posts}
+            {#inc src="title" title=title /}
+         {/posts}
+
+         {#inc src="title2" title=title post="Clashing namespace" /}
+
+         </body>
+         </html>
+         */});
+
+        var fsStub = sinon.stub(fs, "readFileSync").returns(layout);
+
+        var post1 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Homepage"
+         date: 2014-04-10
+         ---
+
+         Content
+
+         */});
+
+        var post2 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "Homepage 2"
+         date: 2014-04-10
+         ---
+
+         Content
+
+         */});
+
+        coderBlog.populateCache("_layouts/post-test.html", layout);
+        coderBlog.populateCache("_includes/title.html", "<li>{title}</li>");
+        coderBlog.populateCache("_includes/title2.html", "<li>{post} - {_post.title}</li>");
+        coderBlog.populateCache("_includes/head.html", "<head><title>{post.title}</title></head>");
+        coderBlog.populateCache("_includes/date.html", "<footer>Date: {post.date}</footer>");
+        coderBlog.populateCache("_includes/partials/footer.html", "<footer>Alternative links {params.url}</footer>");
+        coderBlog.addPost("_posts/post1.md", post1, {});
+        coderBlog.addPost("_posts/post2.md", post2, {});
+        coderBlog.compileOne("posts/post2.md", {}, function (err, out) {
+            assert.isTrue(_.contains(out, '<head><title>Homepage 2</title></head>'));
+            assert.isTrue(_.contains(out, '<footer>Date: April 10, 2014</footer>'));
+            assert.isTrue(_.contains(out, '<li>Homepage</li>'));
+            assert.isTrue(_.contains(out, '<li>Homepage 2</li>'));
+            assert.isTrue(_.contains(out, '<footer>Alternative links http://shakyshane.com</footer>'));
+            fsStub.restore();
+            done();
+        });
+
     });
 });

@@ -12,8 +12,10 @@ var log      = require("./lib/logger");
 var Post     = require("./lib/post").Post;
 var Partial  = require("./lib/partial").Partial;
 var Cache    = require("./lib/cache").Cache;
+var _cache   = new Cache();
 
-module.exports.utils = utils;
+module.exports.utils       = utils;
+module.exports.setLogLevel = log.setLogLevel;
 
 /**
  * 3rd Party libs
@@ -69,7 +71,7 @@ var defaults = {
     dateFormat: "LL" // http://momentjs.com/docs/#/utilities/
 };
 
-module.exports.cache = cache;
+module.exports.cache = _cache;
 
 
 /**
@@ -88,9 +90,9 @@ function getFile(filePath, transform, allowEmpty) {
 
     var content;
 
-    if (filePath && cache[filePath]) {
+    if (content = _cache.find(filePath, "partials")) {
         log("debug", tfunk("%Cgreen:Cache access%R for: " + filePath));
-        return cache[filePath];
+        return content.content;
     } else {
         log("debug", "Not found in cache: " + filePath);
     }
@@ -218,8 +220,8 @@ function getData(front, data, config) {
     data.page           = front;
     data.post           = front;
     data.post.date      = moment(front.date).format(config.dateFormat);
-    data.posts          = preparePosts(posts, data, config);
-    data.pages          = pages;
+    data.posts          = preparePosts(_cache.posts(), data, config);
+    data.pages          = _cache.pages();
 
     // Helper functions
     data.inc            = includeResolver;
@@ -256,9 +258,7 @@ function snippetHelper(chunk, context, bodies, params) {
 
 module.exports.clearCache = function () {
     log("debug", "Clearing all caches, (posts, pages, includes, partials)");
-    cache = {};
-    posts = [];
-    pages = [];
+    _cache.reset();
 };
 
 /**
@@ -320,27 +320,55 @@ function getInclude(path, data, chunk) {
 }
 
 /**
+ * For every include, we create a special environment.
+ * Inline variables always take precendence, and any conflicting
+ * names are underscored.
+ * @param params
+ * @param data
+ * @returns {{params: {}}}
+ */
+function prepareSandbox(params, data) {
+
+    var sandBox = {
+        params: {}
+    }
+
+    // inline params ALWAYS take precedence
+    _.each(params, function (value, key) {
+        sandBox[key] = value;
+        sandBox.params[key] = value;
+    });
+
+    // Now add site-vars, with underscores if needed.
+    _.each(Object.keys(data), function (key) {
+
+        // if it exists in sandbox, underscore it
+        if (!_.isUndefined(sandBox[key])) {
+            sandBox["_" + key] = data[key];
+        } else {
+            sandBox[key] = data[key];
+        }
+    });
+
+    return sandBox;
+}
+
+/**
  * @returns {Function}
  */
 function getCacheResolver(data, type) {
 
     return function (chunk, context, bodies, params) {
 
+        params = params || {};
+
         log("debug", "Looking for '" + params.src + "' in the cache.");
 
-        // params always reset for every include/snippet
-        data.params = {};
-
-        _.each(params, function (value, key) {
-            if (_.isUndefined(data[key])) {
-                data[key] = value;
-            }
-            data.params[key] = value;
-        });
+        var sandBox = prepareSandbox(params, data);
 
         return type === "include"
-            ? getInclude(utils.getIncludePath(params.src), data, chunk)
-            : getSnippetInclude(utils.getSnippetPath(params.src), data, chunk, params);
+            ? getInclude(utils.getIncludePath(params.src), sandBox, chunk)
+            : getSnippetInclude(utils.getSnippetPath(params.src), sandBox, chunk, params);
     }
 }
 
@@ -365,7 +393,7 @@ module.exports.compileOne = function (item, config, cb) {
 
     // Try to find an item from the cache
     if (_.isString(item)) {
-        item = getFromCache(item);
+        item = _cache.find(item, "posts");
     }
 
     if (item && item.front) {
@@ -405,69 +433,36 @@ module.exports.compileOne = function (item, config, cb) {
  */
 module.exports.populateCache = function (key, value) {
 
-    var shortKey   = utils.makeShortKey(key);
-    var partialKey = utils.makePartialKey(shortKey);
+    var partial = new Partial(key, value);
+    _cache.addPartial(partial);
+
+    var shortKey   = partial.shortKey;
+    var partialKey = partial.partialKey;
 
     if (shortKey) {
-        log("debug", "Adding to cache: " + shortKey);
-        dust.loadSource(dust.compile(value, shortKey));
-        cache[shortKey] = value;
 
-        if (isInclude(shortKey) && partialKey && _.isUndefined(cache[partialKey])) {
-            cache[partialKey] = value;
+        log("debug", "Adding to cache: " + shortKey);
+
+        dust.loadSource(dust.compile(value, shortKey));
+
+        if (isInclude(shortKey) && partialKey) {
             dust.loadSource(dust.compile(value, partialKey));
         }
+
     } else {
         log("debug", "Adding to cache: " + key);
         dust.loadSource(dust.compile(value, key));
-        cache[key]      = value;
     }
 
-    return cache;
+    return _cache;
 };
-
-/**
- * Check the cache for existing matches
- * @param key
- * @param [partial]
- * @returns {*}
- */
-function getFromCache(key, partial) {
-
-    var shortKey = utils.makeShortKey(key);
-    var pluck    = {key: shortKey};
-
-    if (!partial) {
-        return _.find(pages, pluck)
-            || _.find(posts, pluck);
-    }
-
-    return cache[key]
-        ? cache[key]
-        : (function () {
-            return _.find(cache, function (value, cacheKey) {
-                return _.contains(cacheKey, key);
-            });
-    })();
-
-
-}
-
-/**
- * Try to retrieve an item from the cache
- */
-module.exports.getFromCache = getFromCache;
 
 /**
  * Allow api users to retrieve the cache.
  * @returns {{partials: {}, posts: Array, pages: Array}}
  */
 module.exports.getCache = function () {
-    return {
-        partials: cache,
-        posts: posts,
-        pages: pages
-    };
+    return _cache;
 };
 
 /**
@@ -497,7 +492,7 @@ function isSnippet(path) {
  * @param [config]
  */
 module.exports.addPost = function (key, string, config) {
-    return addItem(posts, key, string, config);
+    return addItem(_cache, key, string, config);
 };
 
 /**
@@ -506,31 +501,27 @@ module.exports.addPost = function (key, string, config) {
  * @param [config]
  */
 module.exports.addPage = function (key, string, config) {
-    return addItem(pages, key, string, config);
+    return addItem(_cache, key, string, config);
 };
 
 /**
- * @param cache
+ * @param _cache
  * @param key
  * @param string
  * @param config
  * @returns {*}
  */
-function addItem(cache, key, string, config) {
+function addItem(_cache, key, string, config) {
 
     var post;
 
-    if (post = getFromCache(key)) {
+    if (post = _cache.find(key, "posts")) {
         return post;
     }
 
     post = new Post(key, string, config);
 
-    cache.push(post);
-
-    cache.sort(function (a, b) {
-        return b.timestamp - a.timestamp;
-    });
+    _cache.addPost(post);
 
     return post;
 }
