@@ -34,8 +34,6 @@ describe("Adding Partials to the Cache", function(){
          {>head /}
          <body class="post">
 
-         {#content /}
-
          {#inc src="date" /}
 
          {#inc src="partials/footer.html" url="http://shakyshane.com" /}
@@ -45,6 +43,8 @@ describe("Adding Partials to the Cache", function(){
          {/posts}
 
          {#inc src="title2" title=title post="Clashing namespace" /}
+
+         {#content /}
 
          </body>
          </html>
@@ -72,17 +72,25 @@ describe("Adding Partials to the Cache", function(){
 
          Content
 
+         {#snippet src="styles.css" lang="scss" /}
+         {#snippet src="func.js" /}
+
          */});
 
         coderBlog.populateCache("_layouts/post-test.html", layout);
         coderBlog.populateCache("_includes/title.html", "<li>{title}</li>");
         coderBlog.populateCache("_includes/title2.html", "<li>{post} - {_post.title}</li>");
         coderBlog.populateCache("_includes/head.html", "<head><title>{post.title}</title></head>");
+        coderBlog.populateCache("_snippets/styles.css", ".shane { background: black }");
+        coderBlog.populateCache("_snippets/func.js", "var shane='kitten'");
         coderBlog.populateCache("_includes/date.html", "<footer>Date: {post.date}</footer>");
         coderBlog.populateCache("_includes/partials/footer.html", "<footer>Alternative links {params.url}</footer>");
+
         coderBlog.addPost("_posts/post1.md", post1, {});
         coderBlog.addPost("_posts/post2.md", post2, {});
+
         coderBlog.compileOne("posts/post2.md", {}, function (err, out) {
+            console.log(out);
             assert.isTrue(_.contains(out, '<head><title>Homepage 2</title></head>'));
             assert.isTrue(_.contains(out, '<footer>Date: April 10, 2014</footer>'));
             assert.isTrue(_.contains(out, '<li>Homepage</li>'));

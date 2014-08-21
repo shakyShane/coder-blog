@@ -120,35 +120,37 @@ function getFile(filePath, transform, allowEmpty) {
 
 /**
  * @param data
+ * @param cb
  */
-function compile(data) {
+function compile(data, cb) {
 
     var current     = getFile(utils.getLayoutPath(data.page.layout));
 
-    return makeFile(current, data);
+    if (!current) {
+        return cb("file not found");
+    }
+
+    return makeFile(current, data, cb);
 }
 
 /**
  * @param template
  * @param data
- * @returns {Promise.promise|*}
+ * @param cb
  */
-function makeFile(template, data) {
+function makeFile(template, data, cb) {
 
-    var deferred = Q.defer();
     var id = _.uniqueId();
 
     dust.compileFn(template, id, false);
 
     dust.render(id, data, function (err, out) {
         if (err) {
-            deferred.reject(err);
+            cb(null);
         } else {
-            deferred.resolve(out);
+            cb(null, out);
         }
     });
-
-    return deferred.promise;
 }
 
 /**
@@ -295,10 +297,13 @@ function getSnippetInclude(filePath, data, chunk, params) {
         );
     } else {
         return chunk.map(function(chunk) {
-            return makeFile(utils.wrapSnippet(file, lang), data)
-                .then(function (out) {
+            return makeFile(utils.wrapSnippet(file, lang), data, function (err, out) {
+                if (err) {
+                    chunk.end("");
+                } else {
                     chunk.end(out);
-                });
+                }
+            });
         });
     }
 }
@@ -404,11 +409,13 @@ module.exports.compileOne = function (item, config, cb) {
         var escapedContent = utils.escapeCodeFences(item.content);
             escapedContent = utils.escapeInlineCode(escapedContent);
 
-        makeFile(escapedContent, data)
-            .then(render)
-            .catch(cb);
+        makeFile(escapedContent, data, render);
 
-        function render(out) {
+        function render(err, out) {
+
+            if (err) {
+                return cb(err);
+            }
 
             var fullContent = prepareContent(out, data, config);
 
@@ -417,11 +424,13 @@ module.exports.compileOne = function (item, config, cb) {
                 return chunk.write(fullContent);
             };
 
-            compile(data)
-                .then(function (out) {
+            compile(data, function (err, out) {
+                if (err) {
+                    cb(err);
+                } else {
                     cb(null, out);
-                })
-                .catch(cb);
+                }
+            })
         }
     } else {
         cb(null, string);
