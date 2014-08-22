@@ -49,9 +49,10 @@ module.exports = function (config) {
                 var item;
                 if (isPost(key)) {
                     item = coderBlog.addPost(key, files[key], config);
-                }
-                if (isPage(key)) {
-                    item = coderBlog.addPage(key, files[key], config);
+                } else {
+                    if (isPage(key)) {
+                        item = coderBlog.addPage(key, files[key], config);
+                    }
                 }
                 queue.push(item);
             }
@@ -114,7 +115,7 @@ function transformSiteConfig(yaml, config) {
 }
 
 function isPartial(path) {
-    return path.match(/(_includes|_layouts)/);
+    return path.match(/(_includes|_layouts|_snippets)/);
 }
 
 function isPost(path) {

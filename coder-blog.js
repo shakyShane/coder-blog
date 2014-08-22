@@ -10,6 +10,7 @@ var path  = require("path");
 var utils    = require("./lib/utils");
 var log      = require("./lib/logger");
 var Post     = require("./lib/post").Post;
+var Page     = require("./lib/page");
 var Partial  = require("./lib/partial").Partial;
 var Cache    = require("./lib/cache").Cache;
 var _cache   = new Cache();
@@ -510,7 +511,18 @@ module.exports.addPost = function (key, string, config) {
  * @param [config]
  */
 module.exports.addPage = function (key, string, config) {
-    return addItem(_cache, key, string, config);
+
+    var page;
+
+    if (page = _cache.find(key, "pages")) {
+        return page;
+    }
+
+    page = new Page(key, string, config);
+
+    _cache.addPost(page);
+
+    return page;
 };
 
 /**

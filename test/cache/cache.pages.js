@@ -2,7 +2,7 @@ var _             = require("lodash");
 var assert        = require("chai").assert;
 var multiline     = require("multiline");
 
-var Page  = require("../../lib/page").Page;
+var Page  = require("../../lib/page");
 var Cache = require("../../lib/cache").Cache;
 
 var content1 = multiline.stripIndent(function(){/*
@@ -22,7 +22,6 @@ describe("Adding Pages to the Cache", function(){
         _cache    = new Cache();
         page1     = new Page("about-us.html", content1);
         page2     = new Page("projects.html", content2);
-        console.log(page1);
     });
     it("Should add an item", function(){
         var cache = _cache.addPage(page1);
