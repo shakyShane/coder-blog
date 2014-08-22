@@ -76,7 +76,7 @@ var tests = [
 ];
 
 
-describe.only("Creating urls for pages", function(){
+describe("Creating urls for pages", function(){
     tests.forEach(function (item) {
         it(item.message, function(){
             var actual   = makePageUrl(item.key, item.config);

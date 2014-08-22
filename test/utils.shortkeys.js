@@ -60,7 +60,7 @@ var tests = [
 ];
 
 
-describe.only("Creating shortkeys", function(){
+describe("Creating shortkeys", function(){
     tests.forEach(function (item, i) {
         it(item.message, function(){
             var actual   = makeShortKey(item.key, item.config);
