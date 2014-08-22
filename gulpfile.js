@@ -47,7 +47,7 @@ gulp.task("default", ["build-blog", "sass", "browser-sync"], function () {
         "_posts/*",
         "_snippets/**/*",
         "*.yml",
-        "index.html"
+        "*.html"
     ],  ["build-blog", htmlInjector]);
 
     gulp.watch(["_scss/**/*.scss"], ["sass"]);
