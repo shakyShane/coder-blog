@@ -27,15 +27,51 @@ var tests = [
     },
     {
         item: {},
-        key:           "projects/page1.html",
+        key:           "ports/page1.html",
         config: {
             urlFormat: "pretty"
         },
         expected: {
-            filePath:  "projects/page1/index.html",
-            url:       "/projects/page1"
+            filePath:  "ports/page1/index.html",
+            url:       "/ports/page1"
         },
         message:       "any html files in sub-dir"
+    },
+    {
+        item: {},
+        key:           "projects/shane/index.html",
+        config: {
+            urlFormat: "pretty"
+        },
+        expected: {
+            filePath:  "projects/shane/index.html",
+            url:       "/projects/shane"
+        },
+        message:       "any index html files in sub-dir"
+    },
+    {
+        item: {},
+        key:           "projects/shane/kittie/monks.html",
+        config: {
+            urlFormat: "pretty"
+        },
+        expected: {
+            filePath:  "projects/shane/kittie/monks/index.html",
+            url:       "/projects/shane/kittie/monks"
+        },
+        message:       "any index html files in sub-dir"
+    },
+    {
+        item: {},
+        key:           "projects/shane/kittie/index.html",
+        config: {
+            urlFormat: "pretty"
+        },
+        expected: {
+            filePath:  "projects/shane/kittie/index.html",
+            url:       "/projects/shane/kittie"
+        },
+        message:       "any index html files in sub-dir"
     }
 ];
 

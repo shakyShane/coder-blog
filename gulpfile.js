@@ -45,7 +45,7 @@ gulp.task("default", ["build-blog", "sass", "browser-sync"], function () {
         "_layouts/**/*.html",
         "_includes/**/*.html",
         "_posts/*",
-        "projects/*",
+        "projects/**/*.html",
         "_snippets/**/*",
         "*.yml",
         "*.html"
@@ -132,7 +132,7 @@ gulp.task("build-blog", function () {
         "_posts/*.{md,markdown}",
         "_includes/**/*.html",
         "_layouts/*.html",
-        "projects/*.html",
+        "projects/**/*.html",
         "*.html"
     ])
     .pipe(coderBlog({
