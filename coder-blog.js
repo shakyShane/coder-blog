@@ -197,34 +197,57 @@ function highlightSnippet(code, lang, callback) {
 
 /**
  * @param posts
+ * @param data
+ * @param config
  * @returns {*}
  */
-function preparePosts(posts) {
+function preparePosts(posts, data, config) {
 
-    return posts.map(function (post) {
+    return _.map(posts, function (post, i) {
+
         _.each(post.front, function (value, key) {
-            post[key] = value;
+            if (_.isUndefined(post[key])) {
+                post[key] = value;
+            }
         });
+
+        post.date = moment(post.dateObj).format(config.dateFormat);
+
         return post;
     });
 }
 
 /**
+ * @param data
+ * @param item
+ */
+function addPostMeta(data, item) {
+    data.next = _cache.nextPost(item);
+    data.prev = _cache.prevPost(item);
+}
+
+/**
  * This set's up the 'data' object with all the info any templates/includes might need.
- * @param {Object} front
+ * @param {Object} item
  * @param {Object} config - Site config
  * @param {Object} data - Any initial data
  */
-function getData(front, data, config) {
+function getData(item, data, config) {
 
     var includeResolver = getCacheResolver(data, "include");
     var snippetResolver = getCacheResolver(data, "snippet");
 
-    data.page           = front;
-    data.post           = front;
-    data.post.date      = moment(front.date).format(config.dateFormat);
+//    console.log(moment(item.front.date).format(config.dateFormat));
+    data.page           = item;
+    data.post           = item;
     data.posts          = preparePosts(_cache.posts(), data, config);
     data.pages          = _cache.pages();
+
+    // Set next/prev items for posts
+
+    if (item.type === "post") {
+        addPostMeta(data.post, item);
+    }
 
     // Helper functions
     data.inc            = includeResolver;
@@ -404,7 +427,7 @@ module.exports.compileOne = function (item, config, cb) {
 
     if (item && item.front) {
 
-        data = getData(item.front, data, config);
+        data = getData(item, data, config);
         data.content = item.content;
 
         var escapedContent = utils.escapeCodeFences(item.content);

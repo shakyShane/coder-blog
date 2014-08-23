@@ -65,7 +65,6 @@ describe("Processing a Markdown file", function(){
          date: 2013-11-13
          ---
 
-         post1
 
          */});
         var post2 = multiline.stripIndent(function(){/*
@@ -75,13 +74,30 @@ describe("Processing a Markdown file", function(){
          date: 2013-11-14
          ---
 
+         Prev - {post.prev.url}
+
+         Next - {post.next.url}
+
+
+         */});
+        var post3 = multiline.stripIndent(function(){/*
+         ---
+         layout: post-test
+         title: "About us"
+         date: 2013-11-15
+         ---
+
+         Content
+
          */});
 
         coderBlog.addPost("_posts/post1.md", post1, {});
         coderBlog.addPost("_posts/post2.md", post2, {});
+        coderBlog.addPost("_posts/post3.md", post3, {});
 
         coderBlog.compileOne("_posts/post2.md", {}, function (err, out) {
-//            console.log(coderBlog.getCache().posts);
+            assert.equal(_.contains(out, "<p>Prev - /posts/post1.html</p>"), true);
+            assert.equal(_.contains(out, "<p>Next - /posts/post3.html</p>"), true);
             done();
         });
     });
