@@ -426,40 +426,54 @@ module.exports.compileOne = function (item, config, cb) {
     }
 
     if (item && item.front) {
-
-        data = getData(item, data, config);
-        data.content = item.content;
-
-        var escapedContent = utils.escapeCodeFences(item.content);
-            escapedContent = utils.escapeInlineCode(escapedContent);
-
-        makeFile(escapedContent, data, render);
-
-        function render(err, out) {
-
-            if (err) {
-                return cb(err);
-            }
-
-            var fullContent = prepareContent(out, data, config);
-
-            // Just write the cody content without parsing (already done);
-            data.content = function (chunk) {
-                return chunk.write(fullContent);
-            };
-
-            compile(data, function (err, out) {
+        if (!item.front.paginate) {
+            construct(item, data, config, function (err, item) {
                 if (err) {
-                    cb(err);
+                    return cb(err);
                 } else {
-                    cb(null, out);
+                    cb(null, item);
                 }
-            })
+            });
+        } else {
+
         }
     } else {
         cb(null, string);
     }
 };
+
+function construct(item, data, config, cb) {
+    data = getData(item, data, config);
+    data.content = item.content;
+
+    var escapedContent = utils.escapeCodeFences(item.content);
+    escapedContent = utils.escapeInlineCode(escapedContent);
+
+    makeFile(escapedContent, data, render);
+
+    function render(err, out) {
+
+        if (err) {
+            return cb(err);
+        }
+
+        var fullContent = prepareContent(out, data, config);
+
+        // Just write the cody content without parsing (already done);
+        data.content = function (chunk) {
+            return chunk.write(fullContent);
+        };
+
+        compile(data, function (err, out) {
+            if (err) {
+                cb(err);
+            } else {
+                item.compiled = out;
+                cb(null, item);
+            }
+        })
+    }
+}
 
 /**
  * Populate the cache

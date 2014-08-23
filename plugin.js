@@ -59,7 +59,6 @@ module.exports = function (config) {
         });
 
         _.each(queue, function (item) {
-
             promises.push(buildOne(stream, item, config));
         });
 //
@@ -85,12 +84,18 @@ function buildOne(stream, item, config) {
         if (err) {
             deferred.reject(err);
         } else {
-            stream.push(new File({
-                cwd:  "./",
-                base: "./",
-                path: item.filePath,
-                contents: new Buffer(out)
-            }));
+
+            if (Array.isArray(out)) {
+//                out.forEach(function (item) {
+//                });
+            } else {
+                stream.push(new File({
+                    cwd:  "./",
+                    base: "./",
+                    path: out.filePath,
+                    contents: new Buffer(out.compiled)
+                }));
+            }
 
             deferred.resolve(out);
         }

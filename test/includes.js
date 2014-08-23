@@ -58,8 +58,9 @@ describe("Processing a file", function(){
 
         var post = coderBlog.addPost("_posts/post2.md", post1, {});
         coderBlog.compileOne(post, {siteConfig: {sitename: "({shakyShane})"}}, function (err, out) {
-            assert.isTrue(_.contains(out, 'Function Composition in Javascript'));
-            assert.isTrue(_.contains(out, '({shakyShane})'));
+            var compiled = out.compiled;
+            assert.isTrue(_.contains(compiled, 'Function Composition in Javascript'));
+            assert.isTrue(_.contains(compiled, '({shakyShane})'));
             done();
         });
     });
@@ -82,9 +83,9 @@ describe("Processing a file", function(){
 
         var page = coderBlog.addPage("index.html", index, {});
         coderBlog.compileOne(page, {}, function (err, out) {
-            console.log(out);
-            assert.isTrue(_.contains(out, '#Welcome to my blog.'));
-            assert.isFalse(_.contains(out, 'I have written before..'));
+            var compiled = out.compiled;
+            assert.isTrue(_.contains(compiled, '#Welcome to my blog.'));
+            assert.isFalse(_.contains(compiled, 'I have written before..'));
             done();
         });
     });
