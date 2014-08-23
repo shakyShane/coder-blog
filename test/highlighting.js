@@ -80,7 +80,6 @@ describe("Processing a Markdown file", function(){
          g
          */});
 
-
         var post = coderBlog.addPost("_posts/post2.md", index, {});
 
         coderBlog.compileOne(post, {}, done);

@@ -337,7 +337,7 @@ function prepareSandbox(params, data) {
 
     var sandBox = {
         params: {}
-    }
+    };
 
     // inline params ALWAYS take precedence
     _.each(params, function (value, key) {

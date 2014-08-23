@@ -39,27 +39,3 @@ describe("Creating a POST with maximum info", function(){
         assert.isTrue(postItem.dateObj instanceof Date);
     });
 });
-
-describe("Creating a POST with maximum info", function(){
-
-    it("Has access to front matter", function() {
-
-        var page1 = multiline.stripIndent(function(){/*
-         ---
-         title: "About us"
-         ---
-         About us page
-
-         */});
-
-        var pageItem = new Post("about-us.html", page1);
-
-        assert.deepEqual(pageItem.front.title,    "About us",        "Adds title from front");
-        assert.deepEqual(pageItem.content,        "About us page",   "Adds Content");
-        assert.deepEqual(pageItem.key,            "about-us.html",   "Adds Key");
-        assert.deepEqual(pageItem.url,            "/about-us.html",  "Adds URL");
-        assert.deepEqual(pageItem.type,           "page",            "Adds Type");
-
-        assert.isUndefined(pageItem.front.layout, "Doesn't assign a layout");
-    });
-});

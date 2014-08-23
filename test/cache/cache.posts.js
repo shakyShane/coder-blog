@@ -47,10 +47,10 @@ describe("Adding Posts to the Cache", function(){
         var cache = _cache.addPost([post1, post2]);
 
         assert.isTrue(cache.posts()[0] instanceof Post);
-        assert.equal(cache.posts()[0].front.title, "Blog 1");
+        assert.equal(cache.posts()[0].front.title, "Blog 2");
 
         assert.isTrue(cache.posts()[1] instanceof Post);
-        assert.equal(cache.posts()[1].front.title, "Blog 2");
+        assert.equal(cache.posts()[1].front.title, "Blog 1");
     });
     it("Should find posts by key", function(){
 
@@ -58,5 +58,9 @@ describe("Adding Posts to the Cache", function(){
 
         assert.isTrue(post instanceof Post);
         assert.equal(post.front.title, "Blog 1");
+    });
+    it("Should order posts by newest", function(){
+        var cache = _cache.addPost([post1, post2]);
+        assert.deepEqual(cache.posts()[0].front.title, "Blog 2");
     });
 });
