@@ -79,6 +79,8 @@ function buildOne(stream, item, config) {
 
     var deferred = Q.defer();
 
+    console.log(item.url);
+
     coderBlog.compileOne(item, config, function (err, out) {
 
         if (err) {
@@ -86,8 +88,14 @@ function buildOne(stream, item, config) {
         } else {
 
             if (Array.isArray(out)) {
-//                out.forEach(function (item) {
-//                });
+                out.forEach(function (item) {
+                    stream.push(new File({
+                        cwd:  "./",
+                        base: "./",
+                        path: item.filePath,
+                        contents: new Buffer(item.compiled)
+                    }));
+                });
             } else {
                 stream.push(new File({
                     cwd:  "./",

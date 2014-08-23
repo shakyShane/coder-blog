@@ -132,6 +132,7 @@ gulp.task("build-blog", function () {
         "_posts/*.{md,markdown}",
         "_includes/**/*.html",
         "_layouts/*.html",
+        "blog/*.html",
         "projects/**/*.html",
         "*.html"
     ])

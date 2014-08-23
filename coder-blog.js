@@ -21,9 +21,11 @@ module.exports.setLogLevel = log.setLogLevel;
 /**
  * 3rd Party libs
  */
-var Q      = require("q");
-var _      = require("lodash");
-var moment = require("moment");
+var Q         = require("q");
+var _         = require("lodash");
+var moment    = require("moment");
+var multiline = require("multiline");
+
 
 /**
  * Dust for awesome templates
@@ -409,6 +411,8 @@ function getCacheResolver(data, type) {
  */
 module.exports.compileOne = function (item, config, cb) {
 
+    var match;
+
     config = _.merge(_.cloneDeep(defaults), config);
 
     var data = {
@@ -422,12 +426,21 @@ module.exports.compileOne = function (item, config, cb) {
 
     // Try to find an item from the cache
     if (_.isString(item)) {
-        item = _cache.find(item, "posts");
+
+        match = _cache.find(item, "posts");
+
+        if (!match) {
+            match = _cache.find(item, "pages");
+        }
+    } else {
+        match = item;
     }
 
-    if (item && item.front) {
-        if (!item.front.paginate) {
-            construct(item, data, config, function (err, item) {
+    if (match && match.front) {
+
+        if (!match.front.paginate) {
+
+            construct(match, data, config, function (err, item) {
                 if (err) {
                     return cb(err);
                 } else {
@@ -436,18 +449,77 @@ module.exports.compileOne = function (item, config, cb) {
             });
         } else {
 
+            var splitted = _cache.paginate(3, match.front.paginate);
+            splitted     = makePaginationPages(match.content, splitted);
+
+            var compiledItems = [];
+
+            splitted.forEach(function (item) {
+
+                data.paged = preparePosts(item.posts, data, config);
+
+                construct(item.page, data, config, function (err, item) {
+                    if (err) {
+                        return cb(err);
+                    } else {
+                        compiledItems.push(item);
+                        if (compiledItems.length === splitted.length) {
+                            cb(null, compiledItems);
+                        }
+                    }
+                });
+            });
+
+            return false;
         }
+
     } else {
-        cb(null, string);
+        cb(null, item);
     }
 };
 
+var paginateTemplate = multiline.stripIndent(function(){/*
+
+*/});
+
+/**
+ * @param postsCollections
+ */
+function makePaginationPages(template, postsCollections) {
+
+    var pages = [];
+
+    postsCollections.forEach(function (arr, i) {
+
+        var name = "blog/index.html";
+
+        if (i !== 0) {
+            name = "blog/page" + (i+1)
+        }
+
+        pages.push({
+            page: new Page(name, template, {}),
+            posts: arr
+        });
+    });
+
+    return pages;
+}
+
+module.exports.makePaginationPages = makePaginationPages;
+
+/**
+ * @param item
+ * @param data
+ * @param config
+ * @param cb
+ */
 function construct(item, data, config, cb) {
     data = getData(item, data, config);
     data.content = item.content;
 
     var escapedContent = utils.escapeCodeFences(item.content);
-    escapedContent = utils.escapeInlineCode(escapedContent);
+    escapedContent     = utils.escapeInlineCode(escapedContent);
 
     makeFile(escapedContent, data, render);
 
@@ -557,7 +629,7 @@ module.exports.addPage = function (key, string, config) {
 
     page = new Page(key, string, config);
 
-    _cache.addPost(page);
+    _cache.addPage(page);
 
     return page;
 };
