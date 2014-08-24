@@ -1,7 +1,12 @@
 <header class="site-header">
     <a class="site-title" href="/">{site.title}</a>
     <nav class="site-nav">
-        <a class="page-link" href="/blog">Posts</a>
-        <a class="page-link" href="/projects/">Projects</a>
+        {#site.navigation}
+            {@eq key=url value=page.url}
+                <a class="page-link active" href="{url}">{title}</a>
+            {:else}
+                <a class="page-link" href="{url}">{title}</a>
+            {/eq}
+        {/site.navigation}
     </nav>
 </header>

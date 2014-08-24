@@ -30,7 +30,9 @@ var multiline = require("multiline");
 /**
  * Dust for awesome templates
  */
-var dust  = require("dustjs-linkedin");
+//var dust     = require("dustjs-linkedin");
+var dust = require('dustjs-helpers');
+
 /**
  * Make Dust templates retain whitespace
  */
