@@ -7,13 +7,14 @@ var path  = require("path");
 /**
  * Lib
  */
-var utils    = require("./lib/utils");
-var log      = require("./lib/logger");
-var Post     = require("./lib/post").Post;
-var Page     = require("./lib/page");
-var Partial  = require("./lib/partial").Partial;
-var Cache    = require("./lib/cache").Cache;
-var _cache   = new Cache();
+var utils     = require("./lib/utils");
+var log       = require("./lib/logger");
+var Post      = require("./lib/post").Post;
+var Page      = require("./lib/page");
+var Paginator = require("./lib/paginator");
+var Partial   = require("./lib/partial").Partial;
+var Cache     = require("./lib/cache").Cache;
+var _cache    = new Cache();
 
 module.exports.utils       = utils;
 module.exports.setLogLevel = log.setLogLevel;
@@ -448,23 +449,18 @@ module.exports.compileOne = function (item, config, cb) {
                     cb(null, item);
                 }
             });
+
         } else {
 
-            var type = [match.front.paginate, 2];
+            var paginator      = new Paginator(_cache.posts(), match, match.front.paginate);
+            var paginatorPages = paginator.pages();
 
-            if (match.front.paginate.match(/:/)) {
-                type = match.front.paginate.split(":");
-            }
+            var compiledItems  = [];
 
-            var splitted = _cache.paginate(type[1], type[0]);
-            splitted     = makePaginationPages(match, splitted);
+            paginatorPages.forEach(function (item, i) {
 
-            var compiledItems = [];
-
-            splitted.forEach(function (item, i) {
-
-                var next = splitted[i+1];
-                var prev = splitted[i-1];
+                var next = paginatorPages[i+1];
+                var prev = paginatorPages[i-1];
 
                 if (next) {
                     next.page.front.title = " Page " + (i+2);
@@ -474,7 +470,7 @@ module.exports.compileOne = function (item, config, cb) {
                 }
 
                 data.paged = {
-                    perPage: type[1],
+                    perPage: paginator.perPage,
                     items: preparePosts(item.items, data, config),
                     next: next ? preparePosts([next.page], data, config) : null,
                     prev: prev ? preparePosts([prev.page], data, config) : null
@@ -485,7 +481,7 @@ module.exports.compileOne = function (item, config, cb) {
                         return cb(err);
                     } else {
                         compiledItems.push(item);
-                        if (compiledItems.length === splitted.length) {
+                        if (compiledItems.length === paginatorPages.length) {
                             cb(null, compiledItems);
                         }
                     }
@@ -499,37 +495,6 @@ module.exports.compileOne = function (item, config, cb) {
         cb(null, item);
     }
 };
-
-/**
- * @param {Array} postsCollections
- * @param page
- */
-function makePaginationPages(page, postsCollections) {
-
-    var pages = [];
-    var basename = page.paths.url.replace(/^\//, "");
-
-    postsCollections.forEach(function (arr, i) {
-
-        var name = page.paths.filePath;
-
-        if (i !== 0) {
-            name = basename + "/page%s/index.html".replace("%s", i+1);
-        }
-
-        var obj = {
-            page: new Page(name, page.original, {})
-        };
-
-        obj.items = arr;
-
-        pages.push(obj);
-    });
-
-    return pages;
-}
-
-module.exports.makePaginationPages = makePaginationPages;
 
 /**
  * @param item

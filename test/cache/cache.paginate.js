@@ -4,6 +4,7 @@ var multiline     = require("multiline");
 
 var Post      = require("../../lib/post").Post;
 var Page      = require("../../lib/page");
+var Paginator = require("../../lib/paginator");
 var Cache     = require("../../lib/cache").Cache;
 var coderBlog = require("../../coder-blog");
 
@@ -66,11 +67,10 @@ describe("Paginating the posts", function(){
 
         var cache = _cache.addPosts([post1, post2, post3, post4, post5, post6]);
         assert.equal(cache.posts().length, 6);
-        var paginator = _cache.paginate(3, "posts");
 
-        var page = new Page("blog/posts/index.html", page1);
-
-        var pages = coderBlog.makePaginationPages(page, paginator);
+        var page      = new Page("blog/posts/index.html", page1);
+        var paginator = new Paginator(cache.posts(), page, "posts:3");
+        var pages     = paginator.pages();
 
         assert.equal(pages.length, 2);
 
