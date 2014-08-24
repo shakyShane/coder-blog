@@ -1,15 +1,13 @@
 <div class="pagination">
-{#post.prev}
+{#prev}
     <p class="prev">
-        <b>Prev:</b> <small>{date}</small><br/>
-        <a href="{url}">{title}</a>
+        <b>Prev:</b> <a href="{url}">{title}</a>
     </p>
-{/post.prev}
+{/prev}
 
-{#post.next}
+{#next}
     <p class="next">
-        <b>Next:</b> <small>{date}</small><br/>
-        <a href="{url}">{title}</a>
+        <b>Next:</b> <a href="{url}">{title}</a>
     </p>
-{/post.next}
+{/next}
 </div>

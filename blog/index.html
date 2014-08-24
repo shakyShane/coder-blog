@@ -1,22 +1,25 @@
 ---
 layout: default
 title: "Paginated"
-paginate: posts
+paginate: posts:3
 ---
 
+<div class="push--bottom">
+<p>
+    There are <b>{posts.length}</b> posts on this blog.
+</p>
+<p>
+    Currently showing: <b>{paged.perPage}</b> posts per page
+</p>
+</div>
 
+<br/>
 
 {#paged.items}
-<a href="{url}">{title}</a>
+<a href="{url}">{title} <small>{date}</small></a>
 {/paged.items}
 
 <br/>
 
-{#paged.next}
-NEXT: <a href="{url}">{title}</a>
-{/paged.next}
-
-{#paged.prev}
-PREV: <a href="{url}">{title}</a>
-{/paged.prev}
+{#inc src="pagination" next=paged.next prev=paged.prev /}
 

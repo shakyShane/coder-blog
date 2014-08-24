@@ -472,6 +472,7 @@ module.exports.compileOne = function (item, config, cb) {
                 }
 
                 data.paged = {
+                    perPage: type[1],
                     items: preparePosts(item.items, data, config),
                     next: next ? preparePosts([next.page], data, config) : null,
                     prev: prev ? preparePosts([prev.page], data, config) : null
