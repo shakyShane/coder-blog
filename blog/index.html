@@ -4,11 +4,19 @@ title: "Paginated"
 paginate: posts
 ---
 
-{?paged}
-<ul class="nav posts">{#paged}
-    <li>
-        <span class="post-date">{date}</span>
-        <a class="post-link" href="{url}">{title}</a>{/paged}
-    </li>
-</ul>{/paged}
+
+
+{#paged.items}
+<a href="{url}">{title}</a>
+{/paged.items}
+
+<br/>
+
+{#paged.next}
+NEXT: <a href="{url}">{title}</a>
+{/paged.next}
+
+{#paged.prev}
+PREV: <a href="{url}">{title}</a>
+{/paged.prev}
 

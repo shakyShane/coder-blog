@@ -38,9 +38,11 @@ describe("Creating a pagination index", function(){
     before(function () {
         fsStub = sinon.stub(fs, "readFileSync");
     });
+
     after(function () {
         fsStub.restore();
     });
+
     afterEach(function () {
         fsStub.reset();
     });
@@ -123,13 +125,23 @@ describe("Creating a pagination index", function(){
         var page1 = multiline.stripIndent(function(){/*
          ---
          layout: default
-         title: "About us"
-         paginate: posts:3
+         title: "Blog posts"
+         paginate: posts:2
          ---
 
-         {#paged}
+         Number of posts: {posts.length}
+
+         {#paged.items}
          {title}{~n}
-         {/paged}
+         {/paged.items}
+
+         {#paged.next}
+         NEXT: {url} - {title}
+         {/paged.next}
+
+         {#paged.prev}
+         PREV: {url} - {title}
+         {/paged.prev}
 
          */});
 
@@ -146,11 +158,13 @@ describe("Creating a pagination index", function(){
 
             assert.equal(_.contains(out[0].compiled, "<p>Post 6</p>"), true);
             assert.equal(_.contains(out[0].compiled, "<p>Post 5</p>"), true);
-            assert.equal(_.contains(out[0].compiled, "<p>Post 4</p>"), true);
+            assert.equal(_.contains(out[0].compiled, "<p>Number of posts: 6</p>"), true);
 
+            assert.equal(_.contains(out[1].compiled, "<p>Post 4</p>"), true);
             assert.equal(_.contains(out[1].compiled, "<p>Post 3</p>"), true);
-            assert.equal(_.contains(out[1].compiled, "<p>Post 2</p>"), true);
-            assert.equal(_.contains(out[1].compiled, "<p>Post 1</p>"), true);
+
+            assert.equal(_.contains(out[2].compiled, "<p>Post 2</p>"), true);
+            assert.equal(_.contains(out[2].compiled, "<p>Post 1</p>"), true);
 
             done();
         });

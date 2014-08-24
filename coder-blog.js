@@ -245,7 +245,6 @@ function getData(item, data, config) {
     data.posts          = preparePosts(_cache.posts(), data, config);
     data.pages          = _cache.pages();
 
-    // Set next/prev items for posts
 
     if (item.type === "post") {
         addPostMeta(data.post, item);
@@ -460,9 +459,23 @@ module.exports.compileOne = function (item, config, cb) {
 
             var compiledItems = [];
 
-            splitted.forEach(function (item) {
+            splitted.forEach(function (item, i) {
 
-                data.paged = preparePosts(item.posts, data, config);
+                var next = splitted[i+1];
+                var prev = splitted[i-1];
+
+                if (next) {
+                    next.page.front.title = " Page " + (i+2);
+                }
+                if (prev) {
+                    prev.page.front.title = " Page " + (i);
+                }
+
+                data.paged = {
+                    items: preparePosts(item.items, data, config),
+                    next: next ? preparePosts([next.page], data, config) : null,
+                    prev: prev ? preparePosts([prev.page], data, config) : null
+                };
 
                 construct(item.page, data, config, function (err, item) {
                     if (err) {
@@ -501,10 +514,13 @@ function makePaginationPages(page, postsCollections) {
             name = basename + "/page%s/index.html".replace("%s", i+1);
         }
 
-        pages.push({
-            page: new Page(name, page.content, {}),
-            posts: arr
-        });
+        var obj = {
+            page: new Page(name, page.original, {})
+        };
+
+        obj.items = arr;
+
+        pages.push(obj);
     });
 
     return pages;
@@ -519,6 +535,7 @@ module.exports.makePaginationPages = makePaginationPages;
  * @param cb
  */
 function construct(item, data, config, cb) {
+
     data = getData(item, data, config);
     data.content = item.content;
 
