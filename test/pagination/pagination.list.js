@@ -124,7 +124,7 @@ describe("Creating a pagination index", function(){
          ---
          layout: default
          title: "About us"
-         paginate: posts
+         paginate: posts:3
          ---
 
          {#paged}

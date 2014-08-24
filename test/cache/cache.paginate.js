@@ -73,7 +73,6 @@ describe("Paginating the posts", function(){
         var pages = coderBlog.makePaginationPages(page, paginator);
 
         assert.equal(pages.length, 2);
-        assert.equal(pages.length, 2);
 
         assert.equal(pages[0].page.url, "/blog/posts");
         assert.equal(pages[0].page.filePath, "blog/posts/index.html");

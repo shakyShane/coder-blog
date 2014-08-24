@@ -449,7 +449,13 @@ module.exports.compileOne = function (item, config, cb) {
             });
         } else {
 
-            var splitted = _cache.paginate(3, match.front.paginate);
+            var type = [match.front.paginate, 2];
+
+            if (match.front.paginate.match(/:/)) {
+                type = match.front.paginate.split(":");
+            }
+
+            var splitted = _cache.paginate(type[1], type[0]);
             splitted     = makePaginationPages(match, splitted);
 
             var compiledItems = [];
