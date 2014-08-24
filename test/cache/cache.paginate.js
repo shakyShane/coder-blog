@@ -29,6 +29,19 @@ var content2 = multiline.stripIndent(function(){/*
  post2
  */});
 
+var page1 = multiline.stripIndent(function(){/*
+ ---
+ layout: default
+ title: "About us"
+ paginate: posts
+ ---
+
+ {#paged}
+ {title}{~n}
+ {/paged}
+
+ */});
+
 describe("Paginating the posts", function(){
     var _cache, post1, post2, post3, post4, post5, post6;
     beforeEach(function () {
@@ -55,15 +68,17 @@ describe("Paginating the posts", function(){
         assert.equal(cache.posts().length, 6);
         var paginator = _cache.paginate(3, "posts");
 
-        var pages = coderBlog.makePaginationPages(paginator);
+        var page = new Page("blog/posts/index.html", page1);
+
+        var pages = coderBlog.makePaginationPages(page, paginator);
 
         assert.equal(pages.length, 2);
         assert.equal(pages.length, 2);
 
-        assert.equal(pages[0].page.url, "/blog");
-        assert.equal(pages[0].page.filePath, "blog/index.html");
+        assert.equal(pages[0].page.url, "/blog/posts");
+        assert.equal(pages[0].page.filePath, "blog/posts/index.html");
 
-        assert.equal(pages[1].page.url, "/blog/page2");
-        assert.equal(pages[1].page.filePath, "blog/page2/index.html");
+        assert.equal(pages[1].page.url, "/blog/posts/page2");
+        assert.equal(pages[1].page.filePath, "blog/posts/page2/index.html");
     });
 });

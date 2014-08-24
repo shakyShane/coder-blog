@@ -450,7 +450,7 @@ module.exports.compileOne = function (item, config, cb) {
         } else {
 
             var splitted = _cache.paginate(3, match.front.paginate);
-            splitted     = makePaginationPages(match.content, splitted);
+            splitted     = makePaginationPages(match, splitted);
 
             var compiledItems = [];
 
@@ -478,27 +478,25 @@ module.exports.compileOne = function (item, config, cb) {
     }
 };
 
-var paginateTemplate = multiline.stripIndent(function(){/*
-
-*/});
-
 /**
- * @param postsCollections
+ * @param {Array} postsCollections
+ * @param page
  */
-function makePaginationPages(template, postsCollections) {
+function makePaginationPages(page, postsCollections) {
 
     var pages = [];
+    var basename = page.paths.url.replace(/^\//, "");
 
     postsCollections.forEach(function (arr, i) {
 
-        var name = "blog/index.html";
+        var name = page.paths.filePath;
 
         if (i !== 0) {
-            name = "blog/page" + (i+1)
+            name = basename + "/page%s/index.html".replace("%s", i+1);
         }
 
         pages.push({
-            page: new Page(name, template, {}),
+            page: new Page(name, page.content, {}),
             posts: arr
         });
     });

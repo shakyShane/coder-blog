@@ -57,7 +57,7 @@ describe("Creating a pagination index", function(){
         coderBlog.populateCache("_includes/head.html", "<head><title>{page.title} {site.sitename}</title></head>");
     });
 
-    it.only("Can use site variables", function(done) {
+    it("Can use site variables", function(done) {
 
         var post1 = multiline.stripIndent(function(){/*
          ---
@@ -140,9 +140,9 @@ describe("Creating a pagination index", function(){
         coderBlog.addPost("_posts/post5.md", post5, {});
         coderBlog.addPost("_posts/post6.md", post6, {});
 
-        coderBlog.addPage("blog/index.html", page1, {});
+        coderBlog.addPage("blog/posts/index.html", page1, {});
 
-        coderBlog.compileOne("blog/index.html", {}, function (err, out) {
+        coderBlog.compileOne("blog/posts/index.html", {}, function (err, out) {
 
             assert.equal(_.contains(out[0].compiled, "<p>Post 6</p>"), true);
             assert.equal(_.contains(out[0].compiled, "<p>Post 5</p>"), true);

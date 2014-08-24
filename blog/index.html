@@ -4,6 +4,11 @@ title: "Paginated"
 paginate: posts
 ---
 
-{#paged}
-{title}{~n}
-{/paged}
+{?paged}
+<ul class="nav posts">{#paged}
+    <li>
+        <span class="post-date">{date}</span>
+        <a class="post-link" href="{url}">{title}</a>{/paged}
+    </li>
+</ul>{/paged}
+
