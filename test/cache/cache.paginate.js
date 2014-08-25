@@ -74,10 +74,12 @@ describe("Paginating the posts", function(){
 
         assert.equal(pages.length, 2);
 
-        assert.equal(pages[0].page.url, "/blog/posts");
-        assert.equal(pages[0].page.filePath, "blog/posts/index.html");
+        assert.equal(pages[0].page.front.title, "About us");
+        assert.equal(pages[0].page.url,         "/blog/posts");
+        assert.equal(pages[0].page.filePath,    "blog/posts/index.html");
 
-        assert.equal(pages[1].page.url, "/blog/posts/page2");
-        assert.equal(pages[1].page.filePath, "blog/posts/page2/index.html");
+        assert.equal(pages[1].page.front.title, "About us - Page 2");
+        assert.equal(pages[1].page.url,         "/blog/posts/page2");
+        assert.equal(pages[1].page.filePath,    "blog/posts/page2/index.html");
     });
 });

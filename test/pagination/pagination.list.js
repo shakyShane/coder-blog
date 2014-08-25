@@ -156,6 +156,8 @@ describe("Creating a pagination index", function(){
 
         coderBlog.compileOne("blog/posts/index.html", {}, function (err, out) {
 
+            assert.equal(_.contains(out[0].title, "Blog posts"), true);
+
             assert.equal(_.contains(out[0].compiled, "<p>Post 6</p>"), true);
             assert.equal(_.contains(out[0].compiled, "<p>Post 5</p>"), true);
             assert.equal(_.contains(out[0].compiled, "<p>Number of posts: 6</p>"), true);

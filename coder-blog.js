@@ -22,11 +22,8 @@ module.exports.setLogLevel = log.setLogLevel;
 /**
  * 3rd Party libs
  */
-var Q         = require("q");
 var _         = require("lodash");
-var moment    = require("moment");
 var multiline = require("multiline");
-
 
 /**
  * Dust for awesome templates
@@ -39,11 +36,6 @@ var dust = require('dustjs-helpers');
  */
 dust.optimizers.format = function(ctx, node) { return node; };
 dust.isDebug = true;
-
-/**
- * Yaml parsing
- */
-var yaml     = require("js-yaml");
 
 /**
  * Markdown parsing
@@ -130,7 +122,7 @@ function getFile(filePath, transform, allowEmpty) {
  */
 function compile(data, cb) {
 
-    var current     = getFile(utils.getLayoutPath(data.page.layout));
+    var current = getFile(utils.getLayoutPath(data.page.layout));
 
     if (!current) {
         return cb("file not found");
@@ -158,15 +150,6 @@ function makeFile(template, data, cb) {
         }
     });
 }
-
-/**
- * @param filePath
- */
-function makeFilename(filePath) {
-    return filePath.replace(/^\//, "");
-//    return path.basename(filePath).split(".")[0] + ".html";
-}
-module.exports.makeFilename = makeFilename;
 
 /**
  * @param string
@@ -201,28 +184,6 @@ function highlightSnippet(code, lang, callback) {
 }
 
 /**
- * @param posts
- * @param data
- * @param config
- * @returns {*}
- */
-function preparePosts(posts, data, config) {
-
-    return _.map(posts, function (post, i) {
-
-        _.each(post.front, function (value, key) {
-            if (_.isUndefined(post[key])) {
-                post[key] = value;
-            }
-        });
-
-        post.date = moment(post.dateObj).format(config.dateFormat);
-
-        return post;
-    });
-}
-
-/**
  * @param data
  * @param item
  */
@@ -245,7 +206,7 @@ function getData(item, data, config) {
 //    console.log(moment(item.front.date).format(config.dateFormat));
     data.page           = item;
     data.post           = item;
-    data.posts          = preparePosts(_cache.posts(), data, config);
+    data.posts          = utils.prepareFrontVars(_cache.posts(), data, config);
     data.pages          = _cache.pages();
 
 
@@ -295,6 +256,7 @@ module.exports.clearCache = function () {
  *
  * @param out
  * @param config
+ * @param data
  */
 function prepareContent(out, data, config) {
     if (_.isUndefined(data.page.markdown) || data.page.markdown === false) {
@@ -353,40 +315,6 @@ function getInclude(path, data, chunk) {
 }
 
 /**
- * For every include, we create a special environment.
- * Inline variables always take precendence, and any conflicting
- * names are underscored.
- * @param params
- * @param data
- * @returns {{params: {}}}
- */
-function prepareSandbox(params, data) {
-
-    var sandBox = {
-        params: {}
-    };
-
-    // inline params ALWAYS take precedence
-    _.each(params, function (value, key) {
-        sandBox[key] = value;
-        sandBox.params[key] = value;
-    });
-
-    // Now add site-vars, with underscores if needed.
-    _.each(Object.keys(data), function (key) {
-
-        // if it exists in sandbox, underscore it
-        if (!_.isUndefined(sandBox[key])) {
-            sandBox["_" + key] = data[key];
-        } else {
-            sandBox[key] = data[key];
-        }
-    });
-
-    return sandBox;
-}
-
-/**
  * @returns {Function}
  */
 function getCacheResolver(data, type) {
@@ -397,7 +325,7 @@ function getCacheResolver(data, type) {
 
         log("debug", "Looking for '" + params.src + "' in the cache.");
 
-        var sandBox = prepareSandbox(params, data);
+        var sandBox = utils.prepareSandbox(params, data);
 
         return type === "include"
             ? getInclude(utils.getIncludePath(params.src), sandBox, chunk)
@@ -471,12 +399,12 @@ module.exports.compileOne = function (item, config, cb) {
 
                 data.paged = {
                     perPage: paginator.perPage,
-                    items: preparePosts(item.items, data, config),
-                    next: next ? preparePosts([next.page], data, config) : null,
-                    prev: prev ? preparePosts([prev.page], data, config) : null
+                    items: utils.prepareFrontVars(item.items, data, config),
+                    next: next ? utils.prepareFrontVars(next.page, data, config) : null,
+                    prev: prev ? utils.prepareFrontVars(prev.page, data, config) : null
                 };
 
-                construct(item.page, data, config, function (err, item) {
+                construct(utils.prepareFrontVars(item.page, data, {}), data, config, function (err, item) {
                     if (err) {
                         return cb(err);
                     } else {
@@ -578,20 +506,6 @@ module.exports.getCache = function () {
  */
 function isInclude(path) {
     return path.match(/^includes/);
-}
-
-/**
- *
- */
-function isLayout(path) {
-    return path.match(/^layouts/);
-}
-
-/**
- *
- */
-function isSnippet(path) {
-    return path.match(/^snippets/);
 }
 
 /**
