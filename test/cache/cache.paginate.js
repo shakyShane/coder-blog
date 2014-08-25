@@ -54,22 +54,13 @@ describe("Paginating the posts", function(){
         post5     = new Post("_posts/post5.md", content2);
         post6     = new Post("_posts/post6.md", content2);
     });
-    it("Should split items", function(){
-        var cache = _cache.addPosts([post1, post2, post3, post4, post5, post6]);
-        assert.equal(cache.posts().length, 6);
-
-        var paginator = _cache.paginate(3);
-        assert.equal(paginator.length, 2);
-        assert.equal(paginator[0].length, 3);
-        assert.equal(paginator[1].length, 3);
-    });
     it("Should create pages", function(){
 
         var cache = _cache.addPosts([post1, post2, post3, post4, post5, post6]);
         assert.equal(cache.posts().length, 6);
 
         var page      = new Page("blog/posts/index.html", page1);
-        var paginator = new Paginator(cache.posts(), page, "posts:3");
+        var paginator = new Paginator(cache.posts(), page, 3);
         var pages     = paginator.pages();
 
         assert.equal(pages.length, 2);

@@ -42,7 +42,7 @@ Hi there {page.title}
 
 */});
 
-describe.skip("Processing a Markdown file", function(){
+describe("Processing a Markdown file", function(){
 
     var fsStub;
 
@@ -68,14 +68,13 @@ describe.skip("Processing a Markdown file", function(){
         coderBlog.populateCache("_includes/head.html", "<head><title>{page.title} {site.sitename}</title></head>");
     });
 
-    it("Can use site variables", function(done) {
+    it("Does not use markdown + still have vars", function(done) {
 
         var index = multiline.stripIndent(function(){/*
          ---
          layout: page-test
          title: "Homepage"
          date: 2014-04-10
-         markdown: "false"
          ---
 
          #Welcome to my blog. {?posts}I have written before..{/posts}
@@ -85,8 +84,10 @@ describe.skip("Processing a Markdown file", function(){
         // NO POSTS ADDED
         coderBlog.addPage("index.html", index);
         coderBlog.compileOne("index.html", {}, function (err, out) {
-            assert.isTrue(_.contains(out, '#Welcome to my blog.'));
-            assert.isFalse(_.contains(out, 'I have written before..'));
+            console.log(out.compiled);
+            var compiled = out.compiled;
+            assert.isTrue(_.contains(compiled, '#Welcome to my blog.'));
+            assert.isFalse(_.contains(compiled, 'I have written before..'));
             done();
         });
     });
@@ -117,10 +118,9 @@ describe.skip("Processing a Markdown file", function(){
 
 
         // NO POSTS ADDED
-        coderBlog.addPage("index.html", index);
-        coderBlog.compileOne("index.html", {}, function (err, out) {
-            assert.isTrue(_.contains(out, '<h1 id="homepage">Homepage</h1>'));
-            assert.isTrue(_.contains(out, '<p>Kittenz</p>'));
+        coderBlog.addPost("_posts/post1.md", index);
+        coderBlog.compileOne("_posts/post1.md", {}, function (err, out) {
+            assert.isTrue(_.contains(out.compiled, '<p>Kittenz</p>'));
             done();
         });
     });
@@ -142,7 +142,8 @@ describe.skip("Processing a Markdown file", function(){
         // NO POSTS ADDED
         var page = coderBlog.addPage("index.html", index);
         coderBlog.compileOne(page, {}, function (err, out) {
-            assert.isTrue(_.contains(out, '<p><code>var shane = function(){ return; }</code></p>'));
+            var compiled = out.compiled;
+            assert.isTrue(_.contains(compiled, 'var shane = function(){ return; }'));
             done();
         });
     });
@@ -165,9 +166,10 @@ describe.skip("Processing a Markdown file", function(){
 
 
         // NO POSTS ADDED
-        coderBlog.addPage("index.html", index);
-        coderBlog.compileOne("index.html", {}, function (err, out) {
-            assert.isTrue(_.contains(out, '<code class="lang-js">'));
+        coderBlog.addPost("_posts/index.markdown", index);
+        coderBlog.compileOne("_posts/index.markdown", {}, function (err, out) {
+            var compiled = out.compiled;
+            assert.isTrue(_.contains(compiled, '<code class="lang-js">'));
             done();
         });
     });

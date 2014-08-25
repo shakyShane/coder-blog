@@ -158,15 +158,15 @@ describe("Creating a pagination index", function(){
 
             assert.equal(_.contains(out[0].title, "Blog posts"), true);
 
-            assert.equal(_.contains(out[0].compiled, "<p>Post 6</p>"), true);
-            assert.equal(_.contains(out[0].compiled, "<p>Post 5</p>"), true);
-            assert.equal(_.contains(out[0].compiled, "<p>Number of posts: 6</p>"), true);
+            assert.equal(_.contains(out[0].compiled, "Post 6"), true);
+            assert.equal(_.contains(out[0].compiled, "Post 5"), true);
+            assert.equal(_.contains(out[0].compiled, "Number of posts: 6"), true);
 
-            assert.equal(_.contains(out[1].compiled, "<p>Post 4</p>"), true);
-            assert.equal(_.contains(out[1].compiled, "<p>Post 3</p>"), true);
+            assert.equal(_.contains(out[1].compiled, "Post 4"), true);
+            assert.equal(_.contains(out[1].compiled, "Post 3"), true);
 
-            assert.equal(_.contains(out[2].compiled, "<p>Post 2</p>"), true);
-            assert.equal(_.contains(out[2].compiled, "<p>Post 1</p>"), true);
+            assert.equal(_.contains(out[2].compiled, "Post 2"), true);
+            assert.equal(_.contains(out[2].compiled, "Post 1"), true);
 
             done();
         });
