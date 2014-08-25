@@ -84,7 +84,6 @@ describe("Processing a Markdown file", function(){
         // NO POSTS ADDED
         coderBlog.addPage("index.html", index);
         coderBlog.compileOne("index.html", {}, function (err, out) {
-            console.log(out.compiled);
             var compiled = out.compiled;
             assert.isTrue(_.contains(compiled, '#Welcome to my blog.'));
             assert.isFalse(_.contains(compiled, 'I have written before..'));
