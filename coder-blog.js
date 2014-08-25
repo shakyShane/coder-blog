@@ -210,9 +210,7 @@ function getData(item, data, config) {
     data.pages          = _cache.pages();
 
     // Site Data
-    data.site._data = {};
-    _cache.convertKeys("data", data.site._data);
-    data.site.data  = data.site._data;
+    data.site.data = _cache.convertKeys("data", {});
 
     if (item.type === "post") {
         addPostMeta(data.post, item);
