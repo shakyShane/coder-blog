@@ -79,15 +79,15 @@ describe("Processing a DATA", function(){
          date: 2013-11-13
          ---
 
-         {#site.data.members}
+         {#site.data.members.with.a.really.long.path}
          {name}
-         {/site.data.members}
+         {/site.data.members.with.a.really.long.path}
 
          */});
 
         coderBlog.addPage("index.html", page1, {});
 
-        coderBlog.populateCache("_data/members.yml", yml, "data");
+        coderBlog.populateCache("_data/members/with/a/really/long/path.yml", yml, "data");
 
         coderBlog.compileOne("index.html", {siteConfig: {}}, function (err, out) {
             assert.equal(_.contains(out.compiled, "Parker Moore"), true);
