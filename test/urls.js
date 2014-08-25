@@ -53,7 +53,7 @@ describe("Processing a file", function(){
         coderBlog.populateCache("_includes/head.html", "<head><title>{page.title} {site.sitename}</title></head>");
     });
 
-    it.skip("Knows about posts", function(done) {
+    it("Knows about posts", function(done) {
 
         var index = multiline.stripIndent(function(){/*
          ---
@@ -63,7 +63,7 @@ describe("Processing a file", function(){
          ---
 
          {#posts}
-         [{title}]({url})
+         {title} - {url}
          {/posts}
 
          */});
@@ -73,7 +73,8 @@ describe("Processing a file", function(){
         coderBlog.addPost("_posts/blog1.md", post1);
         var page = coderBlog.addPage("index.html", index);
         coderBlog.compileOne(page, {}, function (err, out) {
-            assert.isTrue(_.contains(out, '<a href="/posts/blog1.html">Function Composition in Javascript.</a>'));
+            var compiled = out.compiled;
+            assert.isTrue(_.contains(compiled, 'Function Composition in Javascript. - /posts/blog1.html'));
             done();
         });
     });

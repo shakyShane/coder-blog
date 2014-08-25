@@ -7,13 +7,14 @@ var path  = require("path");
 /**
  * Lib
  */
-var utils    = require("./lib/utils");
-var log      = require("./lib/logger");
-var Post     = require("./lib/post").Post;
-var Page     = require("./lib/page");
-var Partial  = require("./lib/partial").Partial;
-var Cache    = require("./lib/cache").Cache;
-var _cache   = new Cache();
+var utils     = require("./lib/utils");
+var log       = require("./lib/logger");
+var Post      = require("./lib/post").Post;
+var Page      = require("./lib/page");
+var Paginator = require("./lib/paginator");
+var Partial   = require("./lib/partial").Partial;
+var Cache     = require("./lib/cache").Cache;
+var _cache    = new Cache();
 
 module.exports.utils       = utils;
 module.exports.setLogLevel = log.setLogLevel;
@@ -21,24 +22,21 @@ module.exports.setLogLevel = log.setLogLevel;
 /**
  * 3rd Party libs
  */
-var Q      = require("q");
-var _      = require("lodash");
-var moment = require("moment");
+var _         = require("lodash");
+var multiline = require("multiline");
+var merge     = require("opt-merger").merge;
 
 /**
  * Dust for awesome templates
  */
-var dust  = require("dustjs-linkedin");
+//var dust     = require("dustjs-linkedin");
+var dust = require('dustjs-helpers');
+
 /**
  * Make Dust templates retain whitespace
  */
 dust.optimizers.format = function(ctx, node) { return node; };
 dust.isDebug = true;
-
-/**
- * Yaml parsing
- */
-var yaml     = require("js-yaml");
 
 /**
  * Markdown parsing
@@ -125,13 +123,13 @@ function getFile(filePath, transform, allowEmpty) {
  */
 function compile(data, cb) {
 
-    var current     = getFile(utils.getLayoutPath(data.page.layout));
+    var current = getFile(utils.getLayoutPath(data.page.front.layout));
 
     if (!current) {
         return cb("file not found");
     }
 
-    return makeFile(current, data, cb);
+    return renderTemplate(current, data, cb);
 }
 
 /**
@@ -139,7 +137,7 @@ function compile(data, cb) {
  * @param data
  * @param cb
  */
-function makeFile(template, data, cb) {
+function renderTemplate(template, data, cb) {
 
     var id = _.uniqueId();
 
@@ -153,15 +151,6 @@ function makeFile(template, data, cb) {
         }
     });
 }
-
-/**
- * @param filePath
- */
-function makeFilename(filePath) {
-    return filePath.replace(/^\//, "");
-//    return path.basename(filePath).split(".")[0] + ".html";
-}
-module.exports.makeFilename = makeFilename;
 
 /**
  * @param string
@@ -196,28 +185,6 @@ function highlightSnippet(code, lang, callback) {
 }
 
 /**
- * @param posts
- * @param data
- * @param config
- * @returns {*}
- */
-function preparePosts(posts, data, config) {
-
-    return _.map(posts, function (post, i) {
-
-        _.each(post.front, function (value, key) {
-            if (_.isUndefined(post[key])) {
-                post[key] = value;
-            }
-        });
-
-        post.date = moment(post.dateObj).format(config.dateFormat);
-
-        return post;
-    });
-}
-
-/**
  * @param data
  * @param item
  */
@@ -237,13 +204,11 @@ function getData(item, data, config) {
     var includeResolver = getCacheResolver(data, "include");
     var snippetResolver = getCacheResolver(data, "snippet");
 
-//    console.log(moment(item.front.date).format(config.dateFormat));
     data.page           = item;
     data.post           = item;
-    data.posts          = preparePosts(_cache.posts(), data, config);
+    data.posts          = utils.prepareFrontVars(_cache.posts(), data, config);
     data.pages          = _cache.pages();
 
-    // Set next/prev items for posts
 
     if (item.type === "post") {
         addPostMeta(data.post, item);
@@ -291,12 +256,16 @@ module.exports.clearCache = function () {
  *
  * @param out
  * @param config
+ * @param data
  */
 function prepareContent(out, data, config) {
+
+    if (data.page.type !== "post") {
+        return out;
+    }
+
     if (_.isUndefined(data.page.markdown) || data.page.markdown === false) {
         return processMardownContent(out, config);
-    } else {
-        return out;
     }
 }
 
@@ -321,7 +290,7 @@ function getSnippetInclude(filePath, data, chunk, params) {
         );
     } else {
         return chunk.map(function(chunk) {
-            return makeFile(utils.wrapSnippet(file, lang), data, function (err, out) {
+            return renderTemplate(utils.wrapSnippet(file, lang), data, function (err, out) {
                 if (err) {
                     chunk.end("");
                 } else {
@@ -349,40 +318,6 @@ function getInclude(path, data, chunk) {
 }
 
 /**
- * For every include, we create a special environment.
- * Inline variables always take precendence, and any conflicting
- * names are underscored.
- * @param params
- * @param data
- * @returns {{params: {}}}
- */
-function prepareSandbox(params, data) {
-
-    var sandBox = {
-        params: {}
-    };
-
-    // inline params ALWAYS take precedence
-    _.each(params, function (value, key) {
-        sandBox[key] = value;
-        sandBox.params[key] = value;
-    });
-
-    // Now add site-vars, with underscores if needed.
-    _.each(Object.keys(data), function (key) {
-
-        // if it exists in sandbox, underscore it
-        if (!_.isUndefined(sandBox[key])) {
-            sandBox["_" + key] = data[key];
-        } else {
-            sandBox[key] = data[key];
-        }
-    });
-
-    return sandBox;
-}
-
-/**
  * @returns {Function}
  */
 function getCacheResolver(data, type) {
@@ -393,12 +328,33 @@ function getCacheResolver(data, type) {
 
         log("debug", "Looking for '" + params.src + "' in the cache.");
 
-        var sandBox = prepareSandbox(params, data);
+        var sandBox = utils.prepareSandbox(params, data);
 
         return type === "include"
             ? getInclude(utils.getIncludePath(params.src), sandBox, chunk)
             : getSnippetInclude(utils.getSnippetPath(params.src), sandBox, chunk, params);
     }
+}
+
+/**
+ * @param item
+ * @returns {*}
+ */
+function getMatch(item) {
+
+    var match;
+
+    // Try to find an item from the cache
+    if (_.isString(item)) {
+        match = _cache.find(item, "posts");
+        if (!match) {
+            match = _cache.find(item, "pages");
+        }
+    } else {
+        return item;
+    }
+
+    return match;
 }
 
 /**
@@ -409,57 +365,124 @@ function getCacheResolver(data, type) {
  */
 module.exports.compileOne = function (item, config, cb) {
 
-    config = _.merge(_.cloneDeep(defaults), config);
+    /**
+     * Merge configs
+     */
+    config = merge(_.cloneDeep(defaults), config, true);
 
+    /**
+     * Allow log-level to be set from config
+     */
+    if (!_.isUndefined(config.logLevel)) {
+        log.setLogLevel(config.logLevel);
+    }
+
+    /**
+     * Setup data + look for _config.yml if needed
+     * @type {{site: (siteConfig|*), config: *}}
+     */
     var data = {
         site: config.siteConfig || utils.getYaml(defaults.configFile),
         config: config
     };
 
-    if (!_.isUndefined(config.logLevel)) {
-        log.setLogLevel(config.logLevel);
+    /**
+     * Get the current item from the cache
+     * @type {*}
+     */
+    var match = getMatch(item);
+
+    /**
+     * Don't continue if there's no match or frontmatter.
+     * Posts & Pages should've already been added with .addPost or .addPage
+     */
+    if (!match || !match.front) {
+        return cb(null, item);
     }
 
-    // Try to find an item from the cache
-    if (_.isString(item)) {
-        item = _cache.find(item, "posts");
-    }
-
-    if (item && item.front) {
-
-        data = getData(item, data, config);
-        data.content = item.content;
-
-        var escapedContent = utils.escapeCodeFences(item.content);
-            escapedContent = utils.escapeInlineCode(escapedContent);
-
-        makeFile(escapedContent, data, render);
-
-        function render(err, out) {
-
+    /**
+     * Compile 1, or with pagination
+     */
+    if (match.front.paginate) {
+        doPagination(match, data, config, cb);
+    } else {
+        construct(match, data, config, function (err, item) {
             if (err) {
                 return cb(err);
+            } else {
+                cb(null, item);
             }
-
-            var fullContent = prepareContent(out, data, config);
-
-            // Just write the cody content without parsing (already done);
-            data.content = function (chunk) {
-                return chunk.write(fullContent);
-            };
-
-            compile(data, function (err, out) {
-                if (err) {
-                    cb(err);
-                } else {
-                    cb(null, out);
-                }
-            })
-        }
-    } else {
-        cb(null, string);
+        });
     }
 };
+
+/**
+ *
+ */
+function doPagination(match, data, config, cb) {
+
+    var meta       = utils.splitMeta(match.front.paginate);
+    var collection = _cache.getCollection(meta[0]);
+
+    var paginator      = new Paginator(collection, match, meta[1]);
+    var paginatorPages = paginator.pages();
+
+    var compiledItems  = [];
+
+    paginatorPages.forEach(function (item, i) {
+
+        data = paginator.addMetaData(item, data, i);
+
+        construct(item.page, data, config, function (err, item) {
+            if (err) {
+                return cb(err);
+            } else {
+                compiledItems.push(item);
+                if (compiledItems.length === paginatorPages.length) {
+                    cb(null, compiledItems);
+                }
+            }
+        });
+    });
+}
+
+/**
+ * @param item
+ * @param data
+ * @param config
+ * @param cb
+ */
+function construct(item, data, config, cb) {
+
+    data = getData(item, data, config);
+    data.content = item.content;
+
+    var escapedContent = utils.escapeCodeFences(item.content);
+    escapedContent     = utils.escapeInlineCode(escapedContent);
+
+    renderTemplate(escapedContent, data, function (err, out) {
+
+        if (err) {
+            return cb(err);
+        }
+
+        var fullContent = prepareContent(out, data, config);
+
+        // Just write the cody content without parsing (already done);
+        data.content = function (chunk) {
+            return chunk.write(fullContent);
+        };
+
+        compile(data, function (err, out) {
+            if (err) {
+                cb(err);
+            } else {
+                item.compiled = out;
+                cb(null, item);
+            }
+        })
+    });
+}
 
 /**
  * Populate the cache
@@ -506,26 +529,23 @@ function isInclude(path) {
 }
 
 /**
- *
- */
-function isLayout(path) {
-    return path.match(/^layouts/);
-}
-
-/**
- *
- */
-function isSnippet(path) {
-    return path.match(/^snippets/);
-}
-
-/**
  * @param key
  * @param string
  * @param [config]
  */
 module.exports.addPost = function (key, string, config) {
-    return addItem(_cache, key, string, config);
+
+    var post;
+
+    if (post = _cache.find(key, "posts")) {
+        return post;
+    }
+
+    post = new Post(key, string, config);
+
+    _cache.addPost(post);
+
+    return post;
 };
 
 /**
@@ -543,7 +563,7 @@ module.exports.addPage = function (key, string, config) {
 
     page = new Page(key, string, config);
 
-    _cache.addPost(page);
+    _cache.addPage(page);
 
     return page;
 };
@@ -557,15 +577,5 @@ module.exports.addPage = function (key, string, config) {
  */
 function addItem(_cache, key, string, config) {
 
-    var post;
 
-    if (post = _cache.find(key, "posts")) {
-        return post;
-    }
-
-    post = new Post(key, string, config);
-
-    _cache.addPost(post);
-
-    return post;
 }

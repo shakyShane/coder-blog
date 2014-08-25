@@ -20,7 +20,7 @@ var defaults = {
  */
 module.exports = function (config) {
 
-    config = merge(defaults, config || {});
+    config = merge(defaults, config || {}, true);
 
     config.siteConfig = config.transformSiteConfig(utils.getYaml(config.configFile), config);
 
@@ -59,7 +59,6 @@ module.exports = function (config) {
         });
 
         _.each(queue, function (item) {
-
             promises.push(buildOne(stream, item, config));
         });
 //
@@ -80,17 +79,31 @@ function buildOne(stream, item, config) {
 
     var deferred = Q.defer();
 
+    console.log(item.url);
+
     coderBlog.compileOne(item, config, function (err, out) {
 
         if (err) {
             deferred.reject(err);
         } else {
-            stream.push(new File({
-                cwd:  "./",
-                base: "./",
-                path: item.filePath,
-                contents: new Buffer(out)
-            }));
+
+            if (Array.isArray(out)) {
+                out.forEach(function (item) {
+                    stream.push(new File({
+                        cwd:  "./",
+                        base: "./",
+                        path: item.filePath,
+                        contents: new Buffer(item.compiled)
+                    }));
+                });
+            } else {
+                stream.push(new File({
+                    cwd:  "./",
+                    base: "./",
+                    path: out.filePath,
+                    contents: new Buffer(out.compiled)
+                }));
+            }
 
             deferred.resolve(out);
         }

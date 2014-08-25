@@ -8,7 +8,7 @@ dust.cache        = {};
 dust.isDebug = true;
 dust.optimizers.format = function(ctx, node) { return node; };
 
-var coderBlog = require("../coder-blog");
+var coderBlog = require("../../coder-blog");
 //coderBlog.setLogLevel("debug");
 
 var postLayout = multiline.stripIndent(function(){/*
@@ -96,8 +96,9 @@ describe("Processing a Markdown file", function(){
         coderBlog.addPost("_posts/post3.md", post3, {});
 
         coderBlog.compileOne("_posts/post2.md", {}, function (err, out) {
-            assert.equal(_.contains(out, "<p>Prev - /posts/post1.html</p>"), true);
-            assert.equal(_.contains(out, "<p>Next - /posts/post3.html</p>"), true);
+            var compiled = out.compiled;
+            assert.equal(_.contains(compiled, "<p>Prev - /posts/post1.html</p>"), true);
+            assert.equal(_.contains(compiled, "<p>Next - /posts/post3.html</p>"), true);
             done();
         });
     });
