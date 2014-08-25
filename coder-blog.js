@@ -209,6 +209,10 @@ function getData(item, data, config) {
     data.posts          = utils.prepareFrontVars(_cache.posts(), data, config);
     data.pages          = _cache.pages();
 
+    // Site Data
+    data.site._data = {};
+    _cache.convertKeys("data", data.site._data);
+    data.site.data  = data.site._data;
 
     if (item.type === "post") {
         addPostMeta(data.post, item);
@@ -382,7 +386,7 @@ module.exports.compileOne = function (item, config, cb) {
      * @type {{site: (siteConfig|*), config: *}}
      */
     var data = {
-        site: config.siteConfig || utils.getYaml(defaults.configFile),
+        site: config.siteConfig || utils.getYaml(defaults.configFile) || {},
         config: config
     };
 
@@ -487,7 +491,13 @@ function construct(item, data, config, cb) {
 /**
  * Populate the cache
  */
-module.exports.populateCache = function (key, value) {
+module.exports.populateCache = function (key, value, type) {
+
+    type = type || "partial";
+
+    if (type === "data") {
+        return _cache.addData(key, value);
+    }
 
     var partial = new Partial(key, value);
     _cache.addPartial(partial);

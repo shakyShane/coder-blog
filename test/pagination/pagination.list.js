@@ -143,6 +143,8 @@ describe("Creating a pagination index", function(){
          PREV: {url} - {title}
          {/paged.prev}
 
+         {site.site-name}
+
          */});
 
         coderBlog.addPost("_posts/post1.md", post1, {});
@@ -154,9 +156,10 @@ describe("Creating a pagination index", function(){
 
         coderBlog.addPage("blog/posts/index.html", page1, {});
 
-        coderBlog.compileOne("blog/posts/index.html", {}, function (err, out) {
+        coderBlog.compileOne("blog/posts/index.html", {siteConfig: {"site-name": "shane - test"}}, function (err, out) {
 
             assert.equal(_.contains(out[0].title, "Blog posts"), true);
+            assert.equal(_.contains(out[0].compiled, "shane - test"), true);
 
             assert.equal(_.contains(out[0].compiled, "Post 6"), true);
             assert.equal(_.contains(out[0].compiled, "Post 5"), true);
