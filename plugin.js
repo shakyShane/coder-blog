@@ -20,7 +20,7 @@ var defaults = {
  */
 module.exports = function (config) {
 
-    config = merge(defaults, config || {});
+    config = merge(defaults, config || {}, true);
 
     config.siteConfig = config.transformSiteConfig(utils.getYaml(config.configFile), config);
 

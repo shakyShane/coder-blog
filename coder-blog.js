@@ -24,6 +24,7 @@ module.exports.setLogLevel = log.setLogLevel;
  */
 var _         = require("lodash");
 var multiline = require("multiline");
+var merge     = require("opt-merger").merge;
 
 /**
  * Dust for awesome templates
@@ -367,7 +368,7 @@ module.exports.compileOne = function (item, config, cb) {
     /**
      * Merge configs
      */
-    config = _.merge(_.cloneDeep(defaults), config);
+    config = merge(_.cloneDeep(defaults), config, true);
 
     /**
      * Allow log-level to be set from config
