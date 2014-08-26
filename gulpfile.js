@@ -131,8 +131,8 @@ gulp.task("build-blog", function () {
 //    return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "index.html"])
     return gulp.src([
         "_posts/*.{md,markdown}",
-//        "_includes/**/*.html",
-//        "_layouts/*.html",
+        "_includes/**/*.html",
+        "_layouts/*.html",
         "blog/*.html",
         "_data/**/*",
         "projects/**/*.html",

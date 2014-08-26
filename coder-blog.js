@@ -16,6 +16,7 @@ var Partial   = require("./lib/partial").Partial;
 var Cache     = require("./lib/cache").Cache;
 var _cache    = new Cache();
 
+module.exports.log         = log;
 module.exports.utils       = utils;
 module.exports.setLogLevel = log.setLogLevel;
 
@@ -81,7 +82,7 @@ module.exports.cache = _cache;
  */
 function getFile(filePath, transform, allowEmpty) {
 
-    log("debug", "Getting file: " + filePath);
+    log("debug", "Getting file: %s", filePath);
 
     if (_.isUndefined(allowEmpty)) {
         allowEmpty = true;
@@ -90,14 +91,14 @@ function getFile(filePath, transform, allowEmpty) {
     var content;
 
     if (content = _cache.find(filePath, "partials")) {
-        log("debug", tfunk("%Cgreen:Cache access%R for: " + filePath));
+        log("debug", "%Cgreen:Cache access%R for: %s", filePath);
         return content.content;
     } else {
-        log("debug", "Not found in cache: " + filePath);
+        log("debug", "Not found in cache: %s", filePath);
     }
 
     try {
-        log("debug", tfunk("%Cyellow:File System access%R for: " + filePath));
+        log("debug", "%Cyellow:File System access%R for: %s", filePath);
         content = fs.readFileSync(utils.makeFsPath(filePath), "utf-8");
         exports.populateCache(filePath,
             _.isFunction(transform)
@@ -106,11 +107,7 @@ function getFile(filePath, transform, allowEmpty) {
         );
         return content;
     } catch (e) {
-        log("warn",
-            tfunk("%Cred:[warn]%R could not access - %s"
-                .replace("%s", e.path)
-            )
-        );
+        log("warn", "Could not access:%Cred: %s", e.path);
         return allowEmpty
             ? ""
             : false
@@ -328,7 +325,7 @@ function getCacheResolver(data, type) {
 
         params = params || {};
 
-        log("debug", "Looking for '" + params.src + "' in the cache.");
+        log("debug", "Looking for %s in the cache.", params.src);
 
         var sandBox = utils.prepareSandbox(params, data);
 
@@ -371,13 +368,6 @@ module.exports.compileOne = function (item, config, cb) {
      * Merge configs
      */
     config = merge(_.cloneDeep(defaults), config, true);
-
-    /**
-     * Allow log-level to be set from config
-     */
-    if (!_.isUndefined(config.logLevel)) {
-        log.setLogLevel(config.logLevel);
-    }
 
     /**
      * Setup data + look for _config.yml if needed
@@ -505,7 +495,7 @@ module.exports.populateCache = function (key, value, type) {
 
     if (shortKey) {
 
-        log("debug", "Adding to cache: " + shortKey);
+        log("debug", "Adding to cache: %s", shortKey);
 
         dust.loadSource(dust.compile(value, shortKey));
 
@@ -514,7 +504,7 @@ module.exports.populateCache = function (key, value, type) {
         }
 
     } else {
-        log("debug", "Adding to cache: " + key);
+        log("debug", "Adding to cache: %s", key);
         dust.loadSource(dust.compile(value, key));
     }
 
@@ -575,15 +565,3 @@ module.exports.addPage = function (key, string, config) {
 
     return page;
 };
-
-/**
- * @param _cache
- * @param key
- * @param string
- * @param config
- * @returns {*}
- */
-function addItem(_cache, key, string, config) {
-
-
-}

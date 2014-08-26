@@ -7,14 +7,18 @@ var utils     = coderBlog.utils;
 var merge     = require("opt-merger").merge;
 var Q         = require("q");
 var _         = require("lodash");
+var tfunk     = require("tfunk");
 
 var PLUGIN_NAME = "gulp-coder-blog";
 
 var defaults = {
     configFile: "./_config.yml",
     transformSiteConfig: transformSiteConfig,
-    env: "production"
+    env: "production",
+    logLevel: "warn"
 };
+
+coderBlog.log.setName(tfunk("%Cmagenta:CoderBlog"));
 
 /**
  * @returns {Function}
@@ -25,8 +29,9 @@ module.exports = function (config) {
 
     config.siteConfig = config.transformSiteConfig(utils.getYaml(config.configFile), config);
 
+    coderBlog.log.setLogLevel(config.logLevel);
+
     var files = {};
-    var posts = {};
     var stream;
 
     return through2.obj(function (file, enc, cb) {
@@ -69,8 +74,9 @@ module.exports = function (config) {
             coderBlog.clearCache();
             cb();
         }).catch(function (err) {
-            gutil.log(coderBlog.logger.compile("%Cwarn:" + err));
-            cb(null);
+            err = err.toString();
+            coderBlog.log("warn", err);
+            cb();
         })
     });
 };

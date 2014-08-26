@@ -1,0 +1,11 @@
+projects:
+  - name: "BrowserSync"
+    url: "http://www.browsersync.io/"
+    github: "https://github.com/shakyShane/browser-sync"
+    desc: >
+      Keep multiple browsers & devices in sync when building websites.
+  - name: "crossbow.js"
+    url: "http://www.crossbow.io/"
+    github: "https://github.com/shakyShane/crossbow"
+    desc: >
+      the fastest, most feature-rich static-site generator + blog.
