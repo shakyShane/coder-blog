@@ -70,29 +70,4 @@ describe("Processing a DATA", function(){
             done();
         });
     });
-    it("Can use site variables from sub-dirs", function(done) {
-
-        var page1 = multiline.stripIndent(function(){/*
-         ---
-         layout: test
-         title: "Homepage"
-         date: 2013-11-13
-         ---
-
-         {#site.data.members.with.a.really.long.path}
-         {name}
-         {/site.data.members.with.a.really.long.path}
-
-         */});
-
-        coderBlog.addPage("index.html", page1, {});
-
-        coderBlog.populateCache("_data/members/with/a/really/long/path.yml", yml, "data");
-
-        coderBlog.compileOne("index.html", {siteConfig: {}}, function (err, out) {
-            assert.equal(_.contains(out.compiled, "Parker Moore"), true);
-            assert.equal(_.contains(out.compiled, "Liu Fengyun"), true);
-            done();
-        });
-    });
 });
