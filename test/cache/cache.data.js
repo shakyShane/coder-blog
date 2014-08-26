@@ -68,7 +68,8 @@ describe("Adding data to the cache", function(){
 
         assert.equal(data.subdir.animals.name, "kittie");
     });
-    it("Should convert keys with sub-dirs to usage paths", function(){
+    it("Should convert keys with sub-dirs to usage paths", function() {
+
         var obj = {};
         var data = _cache
             .addData("_data/subdir/level2/animals.json", {

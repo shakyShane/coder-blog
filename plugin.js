@@ -1,5 +1,6 @@
 var through2  = require("through2");
 var gutil     = require("gulp-util");
+var path      = require("path");
 var File      = gutil.File;
 var coderBlog = require("./coder-blog");
 var utils     = coderBlog.utils;
@@ -44,7 +45,9 @@ module.exports = function (config) {
 
         Object.keys(files).forEach(function (key) {
             if (isPartial(key)) {
-                coderBlog.populateCache(key, files[key]);
+                coderBlog.populateCache(key, files[key], "");
+            } else if (isData(key)) {
+                coderBlog.populateCache(key, files[key], "data");
             } else {
                 var item;
                 if (isPost(key)) {
@@ -78,8 +81,6 @@ module.exports = function (config) {
 function buildOne(stream, item, config) {
 
     var deferred = Q.defer();
-
-    console.log(item.url);
 
     coderBlog.compileOne(item, config, function (err, out) {
 
@@ -127,14 +128,18 @@ function transformSiteConfig(yaml, config) {
     return yaml;
 }
 
-function isPartial(path) {
-    return path.match(/(_includes|_layouts|_snippets)/);
+function isPartial(filePath) {
+    return filePath.match(/(_includes|_layouts|_snippets)/);
 }
 
-function isPost(path) {
-  return path.match(/_posts/);
+function isPost(filePath) {
+  return filePath.match(/_posts/);
 }
 
-function isPage(path) {
-  return path.match(/\.html$/);
+function isData(filePath) {
+  return path.extname(filePath).match(/(json|yml)$/i);
+}
+
+function isPage(filePath) {
+  return filePath.match(/\.html$/);
 }

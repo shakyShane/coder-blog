@@ -134,6 +134,7 @@ gulp.task("build-blog", function () {
 //        "_includes/**/*.html",
 //        "_layouts/*.html",
         "blog/*.html",
+        "_data/**/*",
         "projects/**/*.html",
         "*.html"
     ])
