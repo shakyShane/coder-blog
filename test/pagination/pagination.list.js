@@ -131,6 +131,8 @@ describe("Creating a pagination index", function(){
 
          Number of posts: {posts.length}
 
+         Per Page: {paged.perPage}
+
          {#paged.items}
          {title}{~n}
          {/paged.items}
@@ -158,8 +160,12 @@ describe("Creating a pagination index", function(){
 
         coderBlog.compileOne("blog/posts/index.html", {siteConfig: {"site-name": "shane - test"}}, function (err, out) {
 
+            console.log(out[0].compiled);
+
             assert.equal(_.contains(out[0].title, "Blog posts"), true);
             assert.equal(_.contains(out[0].compiled, "shane - test"), true);
+
+            assert.equal(_.contains(out[0].compiled, "Per Page: 2"), true);
 
             assert.equal(_.contains(out[0].compiled, "Post 6"), true);
             assert.equal(_.contains(out[0].compiled, "Post 5"), true);
