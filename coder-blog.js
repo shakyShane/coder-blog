@@ -187,8 +187,9 @@ function getData(item, data, config) {
     var includeResolver = getCacheResolver(data, "include");
     var snippetResolver = getCacheResolver(data, "snippet");
 
-    data.page           = item;
-    data.post           = item;
+    data.item           = utils.prepareFrontVars(item, config);
+    data.page           = data.item;
+    data.post           = data.item;
     data.posts          = utils.prepareFrontVars(_cache.posts(), config);
     data.pages          = _cache.pages();
 

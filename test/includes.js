@@ -202,17 +202,16 @@ describe("Processing a file", function(){
          layout: post-test
          title: "Blogging is coolio"
          date: 2013-11-13 20:51:39
-         markdown: "false"
          ---
 
-         {#inc src="button.tmpl" text="Sign Up" /}
+         {#inc src="button.tmpl.html" text="Sign Up" /}
 
          {site.title}
 
          */});
 
         // NO POSTS ADDED
-        coderBlog.populateCache("_includes/button.tmpl.html", "<button>{params.text}</button>");
+        coderBlog.populateCache("_includes/button.tmpl.html", "<button>{params.text}</button>", "partials");
         coderBlog.addPage("_posts/post2.md", post2, {});
         coderBlog.compileOne("posts/post2.md", {siteConfig: {title: "Blog Name"}}, function (err, out) {
             var compiled = out.compiled;

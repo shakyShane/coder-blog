@@ -44,15 +44,43 @@ gulp.task("default", ["build-blog", "sass", "browser-sync"], function () {
     gulp.watch([
         "_layouts/**/*.html",
         "_includes/**/*.html",
-        "_posts/*",
+        "_posts/**/*",
         "projects/**/*.html",
         "blog/**/*.html",
         "_snippets/**/*",
         "*.yml",
         "*.html"
-    ],  ["build-blog", htmlInjector]);
+//    ], ["build-blog", browserSync.reload]);
+    ], ["build-blog", htmlInjector]);
 
     gulp.watch(["_scss/**/*.scss"], ["sass"]);
+});
+
+/**
+ * Default task
+ */
+gulp.task("build-blog", function () {
+
+//    return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "index.html"])
+    return gulp.src([
+//        "_posts/**/*.{md,markdown}",
+        "_posts/javascript/new-post.md",
+//        "_includes/**/*.html",
+//        "_layouts/*.html",
+        "blog/*.html",
+//        "_data/**/*",
+//        "projects/**/*.html",
+        "*.html"
+    ])
+        .pipe(coderBlog({
+            env: "dev",
+            highlight: true,
+            markdown: true,
+            logLevel: "warn",
+            postUrlFormat: "/blog/:pretty",
+            pageUrlFormat: ":pretty"
+        }))
+        .pipe(gulp.dest("_site"));
 });
 
 /**
@@ -121,32 +149,6 @@ gulp.task("build", ['rev:css'], function () {
     return gulp.src(["_posts/*.md", "index.html"])
         .pipe(coderBlog())
         .pipe(gulp.dest("_site"));
-});
-
-/**
- * Default task
- */
-gulp.task("build-blog", function () {
-
-//    return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "index.html"])
-    return gulp.src([
-        "_posts/**/*.{md,markdown}",
-        "_includes/**/*.html",
-        "_layouts/*.html",
-        "blog/*.html",
-        "_data/**/*",
-        "projects/**/*.html",
-        "*.html"
-    ])
-    .pipe(coderBlog({
-            env: "dev",
-            highlight: true,
-            markdown: true,
-            logLevel: "warn",
-            postUrlFormat: "/blog/:pretty",
-            pageUrlFormat: ":pretty"
-        }))
-    .pipe(gulp.dest("_site"));
 });
 
 /**

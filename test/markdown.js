@@ -183,7 +183,7 @@ lang: "js"
 date: 2014-04-10
 ---
 
-{post.title}
+Page Title: {post.title}
 
 ```css
 .box {
@@ -215,6 +215,9 @@ zoom: 1;
 
         // NO POSTS ADDED
         coderBlog.addPage("index.html", index);
-        coderBlog.compileOne("index.html", {}, done); // Good if no error thrown
+        coderBlog.compileOne("index.html", {}, function (err, out) {
+            assert.equal(_.contains(out.compiled, "Page Title: Homepage"), true);
+            done();
+        }); // Good if no error thrown
     });
 });
