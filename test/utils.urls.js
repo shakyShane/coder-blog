@@ -6,7 +6,7 @@ var tests = [
         item: {},
         key:           "posts/post1.md",
         config: {
-            urlFormat: "/blog/:filename"
+            postUrlFormat: "/blog/:pretty"
         },
         expected: {
             filePath:  "blog/post1/index.html",
@@ -18,7 +18,7 @@ var tests = [
         item: {},
         key:           "posts/javascript/post1.md",
         config: {
-            urlFormat: "/blog/:filename"
+            postUrlFormat: "/blog/:pretty"
         },
         expected: {
             filePath:  "blog/post1/index.html",
@@ -30,7 +30,7 @@ var tests = [
         item: {},
         key:           "posts/javascript/post1.md",
         config: {
-            urlFormat: false
+            postUrlFormat: false
         },
         expected: {
             filePath:  "posts/javascript/post1.html",
@@ -42,7 +42,7 @@ var tests = [
         item: {},
         key:           "posts/javascript/post1.md",
         config: {
-            urlFormat: "/:filename"
+            postUrlFormat: "/:pretty"
         },
         expected: {
             filePath:  "post1/index.html",
@@ -54,7 +54,7 @@ var tests = [
         item: {},
         key:           "/index.html",
         config: {
-            urlFormat: "/:filename"
+            postUrlFormat: "/:pretty"
         },
         expected: {
             filePath:  "index.html",

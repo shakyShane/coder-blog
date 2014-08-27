@@ -5,7 +5,7 @@ var tests = [
     {
         key:           "index.html",
         config: {
-            urlFormat: "pretty"
+            postUrlFormat: "pretty"
         },
         expected: {
             filePath:  "index.html",
@@ -17,7 +17,7 @@ var tests = [
         item: {},
         key:           "about.html",
         config: {
-            urlFormat: "pretty"
+            postUrlFormat: "pretty"
         },
         expected: {
             filePath:  "about/index.html",
@@ -29,7 +29,7 @@ var tests = [
         item: {},
         key:           "ports/page1.html",
         config: {
-            urlFormat: "pretty"
+            postUrlFormat: "pretty"
         },
         expected: {
             filePath:  "ports/page1/index.html",
@@ -41,7 +41,7 @@ var tests = [
         item: {},
         key:           "projects/shane/index.html",
         config: {
-            urlFormat: "pretty"
+            postUrlFormat: "pretty"
         },
         expected: {
             filePath:  "projects/shane/index.html",
@@ -53,7 +53,7 @@ var tests = [
         item: {},
         key:           "projects/shane/kittie/monks.html",
         config: {
-            urlFormat: "pretty"
+            postUrlFormat: "pretty"
         },
         expected: {
             filePath:  "projects/shane/kittie/monks/index.html",
@@ -65,7 +65,7 @@ var tests = [
         item: {},
         key:           "projects/shane/kittie/index.html",
         config: {
-            urlFormat: "pretty"
+            postUrlFormat: "pretty"
         },
         expected: {
             filePath:  "projects/shane/kittie/index.html",

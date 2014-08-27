@@ -26,53 +26,34 @@ module.exports.setLogLevel = log.setLogLevel;
 var _         = require("lodash");
 var multiline = require("multiline");
 var merge     = require("opt-merger").merge;
+var marked    = require('marked');
+var highlight = require('highlight.js');
 
-/**
- * Dust for awesome templates
- */
-//var dust     = require("dustjs-linkedin");
-var dust = require('dustjs-helpers');
-
-/**
- * Make Dust templates retain whitespace
- */
+var dust      = require('dustjs-helpers');
 dust.optimizers.format = function(ctx, node) { return node; };
 dust.isDebug = true;
-
-/**
- * Markdown parsing
- */
-var marked    = require('marked');
-
-/**
- * Highlight.js for default highlighting styles
- */
-var highlight  = require('highlight.js');
-
-/**
- * tfunk for terminal colours
- */
-var tfunk    = require("tfunk");
-
-/**
- * Caches
- */
-var cache    = {};
-var posts    = [];
-var pages    = [];
 
 /**
  * Default configuration
  */
 var defaults = {
+    /**
+     * The location of your sites configuration file.
+     */
     configFile: "./_config.yml",
+    /**
+     * Should posts be rendered using Markdown?
+     */
     markdown: true,
+    /**
+     * Should code snippets be auto-highlighted?
+     */
     highlight: true,
+    /**
+     * Data format for posts
+     */
     dateFormat: "LL" // http://momentjs.com/docs/#/utilities/
 };
-
-module.exports.cache = _cache;
-
 
 /**
  * Get a file from the cache, or alternative look it up on FS from CWD as base
@@ -118,7 +99,7 @@ function getFile(filePath, transform, allowEmpty) {
  * @param data
  * @param cb
  */
-function compile(data, cb) {
+function addLayout(data, cb) {
 
     var current = getFile(utils.getLayoutPath(data.page.front.layout));
 
@@ -209,6 +190,7 @@ function getData(item, data, config) {
     // Site Data
     data.site.data = _cache.convertKeys("data", {});
 
+    // Add meta data if it's a post
     if (item.type === "post") {
         addPostMeta(data.post, item);
     }
@@ -465,7 +447,7 @@ function construct(item, data, config, cb) {
             return chunk.write(fullContent);
         };
 
-        compile(data, function (err, out) {
+        addLayout(data, function (err, out) {
             if (err) {
                 cb(err);
             } else {

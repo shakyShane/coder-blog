@@ -143,7 +143,8 @@ gulp.task("build-blog", function () {
             highlight: true,
             markdown: true,
             logLevel: "warn",
-            urlFormat: "/blog/:filename"
+            postUrlFormat: "/blog/:pretty",
+            pageUrlFormat: "pretty"
         }))
     .pipe(gulp.dest("_site"));
 });
