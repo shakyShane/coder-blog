@@ -21,8 +21,20 @@ var tests = [
             postUrlFormat: "/blog/:pretty"
         },
         expected: {
-            filePath:  "blog/post1/index.html",
-            url:       "/blog/post1"
+            filePath:  "blog/javascript/post1/index.html",
+            url:       "/blog/javascript/post1"
+        },
+        message:       "Respects sub-dirs"
+    },
+    {
+        item: {},
+        key:           "posts/post1.md",
+        config: {
+            postUrlFormat: "/:pretty"
+        },
+        expected: {
+            filePath:  "post1/index.html",
+            url:       "/post1"
         },
         message:       "Strips sub-dirs"
     },
@@ -33,10 +45,10 @@ var tests = [
             postUrlFormat: false
         },
         expected: {
-            filePath:  "posts/javascript/post1.html",
-            url:       "/posts/javascript/post1.html"
+            filePath:  "javascript/post1.html",
+            url:       "/javascript/post1.html"
         },
-        message:       "Respects sub directories"
+        message:       "Does not create any pretty urls if False"
     },
     {
         item: {},
@@ -45,22 +57,10 @@ var tests = [
             postUrlFormat: "/:pretty"
         },
         expected: {
-            filePath:  "post1/index.html",
-            url:       "/post1"
+            filePath:  "javascript/post1/index.html",
+            url:       "/javascript/post1"
         },
         message:       "Allows filename only with paths"
-    },
-    {
-        item: {},
-        key:           "/index.html",
-        config: {
-            postUrlFormat: "/:pretty"
-        },
-        expected: {
-            filePath:  "index.html",
-            url:       "/index.html"
-        },
-        message:       "Allows filename only"
     }
 ];
 

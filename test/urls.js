@@ -74,7 +74,7 @@ describe("Processing a file", function(){
         var page = coderBlog.addPage("index.html", index);
         coderBlog.compileOne(page, {}, function (err, out) {
             var compiled = out.compiled;
-            assert.isTrue(_.contains(compiled, 'Function Composition in Javascript. - /posts/blog1.html'));
+            assert.isTrue(_.contains(compiled, 'Function Composition in Javascript. - /blog1.html'));
             done();
         });
     });

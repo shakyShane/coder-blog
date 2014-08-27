@@ -29,7 +29,7 @@ describe("Creating a POST with maximum info", function(){
         assert.deepEqual(postItem.front.layout, "post-test",         "Adds layout from front");
         assert.deepEqual(postItem.content,      "post1",             "Adds Content");
         assert.deepEqual(postItem.key,          "posts/post1.md",    "Adds Key");
-        assert.deepEqual(postItem.url,          "/posts/post1.html", "Adds URL");
+        assert.deepEqual(postItem.url,          "/post1.html",       "Adds URL");
         assert.deepEqual(postItem.timestamp,    1384300800000,       "Adds Timestamp");
         assert.deepEqual(postItem.type,         "post",              "Adds Timestamp");
 
