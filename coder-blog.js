@@ -184,7 +184,7 @@ function getData(item, data, config) {
 
     data.page           = item;
     data.post           = item;
-    data.posts          = utils.prepareFrontVars(_cache.posts(), data, config);
+    data.posts          = utils.prepareFrontVars(_cache.posts(), config);
     data.pages          = _cache.pages();
 
     // Site Data
@@ -405,7 +405,7 @@ function doPagination(match, data, config, cb) {
 
     paginatorPages.forEach(function (item, i) {
 
-        data = paginator.addMetaData(item, data, i);
+        data.paged = paginator.getMetaData(item, data.config, i);
 
         construct(item.page, data, config, function (err, item) {
             if (err) {
