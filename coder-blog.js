@@ -16,6 +16,11 @@ var Partial   = require("./lib/partial").Partial;
 var Cache     = require("./lib/cache").Cache;
 var _cache    = new Cache();
 
+module.exports.clearCache = function () {
+    log("debug", "Clearing all caches, (posts, pages, includes, partials)");
+    _cache.reset();
+};
+
 module.exports.log         = log;
 module.exports.utils       = utils;
 module.exports.setLogLevel = log.setLogLevel;
@@ -81,7 +86,7 @@ function getFile(filePath, transform, allowEmpty) {
     try {
         log("debug", "%Cyellow:File System access%R for: %s", filePath);
         content = fs.readFileSync(utils.makeFsPath(filePath), "utf-8");
-        exports.populateCache(filePath,
+        populateCache(filePath,
             _.isFunction(transform)
                 ? transform(content)
                 : content
@@ -188,7 +193,7 @@ function getData(item, data, config) {
     data.pages          = _cache.pages();
 
     // Site Data
-    data.site.data = _cache.convertKeys("data", {});
+    data.site.data      = _cache.convertKeys("data", {});
 
     // Add meta data if it's a post
     if (item.type === "post") {
@@ -227,11 +232,6 @@ function snippetHelper(chunk, context, bodies, params) {
     // If there's no block, just return the chunk
     return chunk;
 }
-
-module.exports.clearCache = function () {
-    log("debug", "Clearing all caches, (posts, pages, includes, partials)");
-    _cache.reset();
-};
 
 /**
  *
@@ -459,9 +459,12 @@ function construct(item, data, config, cb) {
 }
 
 /**
- * Populate the cache
+ * @param key
+ * @param value
+ * @param type
+ * @returns {*}
  */
-module.exports.populateCache = function (key, value, type) {
+function populateCache (key, value, type) {
 
     type = type || "partial";
 
@@ -491,7 +494,27 @@ module.exports.populateCache = function (key, value, type) {
     }
 
     return _cache;
-};
+}
+
+/**
+ *
+ */
+function isInclude(path) {
+    return path.match(/^includes/);
+}
+
+/**
+ *
+ *
+ *  Begin Public API
+ *
+ *
+ */
+
+/**
+ * Populate the cache
+ */
+module.exports.populateCache = populateCache;
 
 /**
  * Allow api users to retrieve the cache.
@@ -500,13 +523,6 @@ module.exports.populateCache = function (key, value, type) {
 module.exports.getCache = function () {
     return _cache;
 };
-
-/**
- *
- */
-function isInclude(path) {
-    return path.match(/^includes/);
-}
 
 /**
  * @param key

@@ -160,8 +160,6 @@ describe("Creating a pagination index", function(){
 
         coderBlog.compileOne("blog/posts/index.html", {siteConfig: {"site-name": "shane - test"}}, function (err, out) {
 
-            console.log(out[0].compiled);
-
             assert.equal(_.contains(out[0].title, "Blog posts"), true);
             assert.equal(_.contains(out[0].compiled, "shane - test"), true);
 
