@@ -1,6 +1,6 @@
 var assert      = require("chai").assert;
 var _           = require("lodash");
-var makePageUrl = require("../lib/utils").makePageUrl;
+var makePageUrl = require("../../lib/utils").makePageUrl;
 var tests = [
     {
         key:           "index.html",
