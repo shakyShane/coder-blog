@@ -1,5 +1,6 @@
-var assert = require("chai").assert;
-var utils  = require("../../lib/utils");
+var assert      = require("chai").assert;
+var url         = require("../../lib/url");
+var makePostUrl = url.makePostUrl;
 
 describe("Creating Post URLS from keys", function () {
 
@@ -9,7 +10,7 @@ describe("Creating Post URLS from keys", function () {
 
             var config = {};
 
-            var actual = utils.makePostUrl("posts/post1.md", config);
+            var actual = makePostUrl("posts/post1.md", config);
 
             var expected = {
                 filePath: "post1.html",
@@ -22,7 +23,7 @@ describe("Creating Post URLS from keys", function () {
 
             var config = {};
 
-            var actual = utils.makePostUrl("posts/js/post1.md", config);
+            var actual = makePostUrl("posts/js/post1.md", config);
 
             var expected = {
                 filePath: "js/post1.html",
@@ -35,7 +36,7 @@ describe("Creating Post URLS from keys", function () {
 
             var config = {};
 
-            var actual = utils.makePostUrl("posts/js/node/javascript/cats/post1.md", config);
+            var actual = makePostUrl("posts/js/node/javascript/cats/post1.md", config);
 
             var expected = {
                 filePath: "js/node/javascript/cats/post1.html",
@@ -52,7 +53,7 @@ describe("Creating Post URLS from keys", function () {
 
             var config = {};
 
-            var actual = utils.makePostUrl("posts/2014-06-21-post1.md", config);
+            var actual = makePostUrl("posts/2014-06-21-post1.md", config);
 
             var expected = {
                 filePath: "post1.html",
@@ -65,7 +66,7 @@ describe("Creating Post URLS from keys", function () {
 
             var config = {};
 
-            var actual = utils.makePostUrl("posts/2014-06-21-post1.md", config);
+            var actual = makePostUrl("posts/2014-06-12-post1.md", config);
 
             var expected = {
                 filePath: "post1.html",
@@ -84,7 +85,7 @@ describe("Creating Post URLS from keys", function () {
                 postUrlFormat: "/:pretty"
             };
 
-            var actual = utils.makePostUrl("posts/post1.md", config);
+            var actual = makePostUrl("posts/post1.md", config);
 
             var expected = {
                 filePath: "post1/index.html",
@@ -99,7 +100,7 @@ describe("Creating Post URLS from keys", function () {
                 postUrlFormat: "/:pretty"
             };
 
-            var actual = utils.makePostUrl("posts/js/post1.md", config);
+            var actual = makePostUrl("posts/js/post1.md", config);
 
             var expected = {
                 filePath: "js/post1/index.html",
@@ -114,7 +115,7 @@ describe("Creating Post URLS from keys", function () {
                 postUrlFormat: "/blog/:pretty"
             };
 
-            var actual = utils.makePostUrl("posts/js/post1.md", config);
+            var actual = makePostUrl("posts/js/post1.md", config);
 
             var expected = {
                 filePath: "blog/js/post1/index.html",

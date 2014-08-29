@@ -3,7 +3,7 @@ var assert        = require("chai").assert;
 var multiline     = require("multiline");
 
 var Page  = require("../../lib/page");
-var Cache = require("../../lib/cache").Cache;
+var Cache = require("../../lib/cache");
 
 var content1 = multiline.stripIndent(function(){/*
 

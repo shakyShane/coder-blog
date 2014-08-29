@@ -8,12 +8,13 @@ var path  = require("path");
  * Lib
  */
 var utils     = require("./lib/utils");
+var yaml      = require("./lib/yaml");
 var log       = require("./lib/logger");
-var Post      = require("./lib/post").Post;
+var Post      = require("./lib/post");
 var Page      = require("./lib/page");
 var Paginator = require("./lib/paginator");
-var Partial   = require("./lib/partial").Partial;
-var Cache     = require("./lib/cache").Cache;
+var Partial   = require("./lib/partial");
+var Cache     = require("./lib/cache");
 var _cache    = new Cache();
 
 module.exports.clearCache = function () {
@@ -357,7 +358,7 @@ module.exports.compileOne = function (item, config, cb) {
      * @type {{site: (siteConfig|*), config: *}}
      */
     var data = {
-        site: config.siteConfig || utils.getYaml(defaults.configFile) || {},
+        site: config.siteConfig || yaml.getYaml(defaults.configFile) || {},
         config: config
     };
 

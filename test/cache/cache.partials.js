@@ -4,9 +4,9 @@ var multiline     = require("multiline");
 var sinon         = require("sinon");
 var fs            = require("fs");
 
-var Cache     = require("../../lib/cache").Cache;
-var coderBlog = require("../../coder-blog");
-var Partial   = require("../../lib/partial").Partial;
+var Cache     = require("../../lib/cache");
+var coderBlog = require("../../index");
+var Partial   = require("../../lib/partial");
 
 describe("Adding Partials to the Cache", function(){
     var _cache;

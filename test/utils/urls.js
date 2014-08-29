@@ -6,7 +6,7 @@ dust.cache        = {};
 dust.isDebug = true;
 dust.optimizers.format = function(ctx, node) { return node; };
 
-var coderBlog = require("../../coder-blog");
+var coderBlog = require("../../index");
 //coderBlog.setLogLevel("debug");
 
 var postLayout = multiline.stripIndent(function(){/*
