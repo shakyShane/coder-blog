@@ -2,7 +2,7 @@
 layout: post
 title:  "Beginners guide to testing NodeJS Servers"
 date:   2014-03-14
-categories: javascript nodejs
+categories: javascript, nodejs
 ---
 
 The following is a gentle introduction into the world of unit testing NodeJS servers. We'll look at the absolute basics here - so if you've never written unit tests before & you've *been meaning to learn how* - then this is the blog post for you.

@@ -2,7 +2,7 @@
 layout: post
 title:  "BrowserSync - it's getting a UI"
 date:   2014-01-14
-categories: javascript nodejs
+categories: javascript, nodejs
 ---
 
 The early adoption of my open source project [BrowserSync](http://browsersync.io) has been **really** inspiring. The idea that people around the world are starting to use this little tool that I've been hacking on in my spare time is mind-blowing.

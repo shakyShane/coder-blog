@@ -50,8 +50,8 @@ gulp.task("default", ["build-blog", "sass", "browser-sync"], function () {
         "_snippets/**/*",
         "*.yml",
         "*.html"
-//    ], ["build-blog", browserSync.reload]);
-    ], ["build-blog", htmlInjector]);
+    ], ["build-blog", browserSync.reload]);
+//    ], ["build-blog", htmlInjector]);
 
     gulp.watch(["_scss/**/*.scss"], ["sass"]);
 });
@@ -63,13 +63,13 @@ gulp.task("build-blog", function () {
 
 //    return gulp.src(["_posts/*.md", "_includes/**/*.html", "_layouts/*.html", "index.html"])
     return gulp.src([
-//        "_posts/**/*.{md,markdown}",
-        "_posts/javascript/new-post.md",
+        "_posts/**/*.{md,markdown}",
+//        "_posts/javascript/new-post.md",
 //        "_includes/**/*.html",
 //        "_layouts/*.html",
         "blog/*.html",
-//        "_data/**/*",
-//        "projects/**/*.html",
+        "_data/**/*",
+        "projects/**/*.html",
         "*.html"
     ])
         .pipe(coderBlog({
@@ -77,8 +77,8 @@ gulp.task("build-blog", function () {
             highlight: true,
             markdown: true,
             logLevel: "warn",
-            postUrlFormat: "/blog/:pretty",
-            pageUrlFormat: ":pretty"
+            postUrlFormat: "/blog/:category/:title",
+            prettyUrls: true
         }))
         .pipe(gulp.dest("_site"));
 });

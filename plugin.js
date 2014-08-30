@@ -1,9 +1,11 @@
+var crossbow  = require("/Users/shakyshane/code/crossbow.js");
+var yaml  = require("/Users/shakyshane/code/crossbow.js/lib/yaml");
+var utils     = crossbow.utils;
+
 var through2  = require("through2");
 var gutil     = require("gulp-util");
-var path      = require("path");
 var File      = gutil.File;
-var coderBlog = require("./index");
-var utils     = coderBlog.utils;
+var path      = require("path");
 var merge     = require("opt-merger").merge;
 var Q         = require("q");
 var _         = require("lodash");
@@ -18,7 +20,7 @@ var defaults = {
     logLevel: "warn"
 };
 
-coderBlog.log.setName(tfunk("%Cmagenta:CoderBlog"));
+crossbow.log.setName(tfunk("%Cmagenta:crossbow"));
 
 /**
  * @returns {Function}
@@ -27,9 +29,9 @@ module.exports = function (config) {
 
     config = merge(defaults, config || {}, true);
 
-    config.siteConfig = config.transformSiteConfig(utils.getYaml(config.configFile), config);
+    config.siteConfig = config.transformSiteConfig(yaml.getYaml(config.configFile), config);
 
-    coderBlog.log.setLogLevel(config.logLevel);
+    crossbow.log.setLogLevel(config.logLevel);
 
     var files = {};
     var stream;
@@ -50,16 +52,16 @@ module.exports = function (config) {
 
         Object.keys(files).forEach(function (key) {
             if (isPartial(key)) {
-                coderBlog.populateCache(key, files[key], "");
+                crossbow.populateCache(key, files[key], "");
             } else if (isData(key)) {
-                coderBlog.populateCache(key, files[key], "data");
+                crossbow.populateCache(key, files[key], "data");
             } else {
                 var item;
                 if (isPost(key)) {
-                    item = coderBlog.addPost(key, files[key], config);
+                    item = crossbow.addPost(key, files[key], config);
                 } else {
                     if (isPage(key)) {
-                        item = coderBlog.addPage(key, files[key], config);
+                        item = crossbow.addPage(key, files[key], config);
                     }
                 }
                 queue.push(item);
@@ -71,11 +73,11 @@ module.exports = function (config) {
         });
 //
         Q.all(promises).then(function (err, out) {
-            coderBlog.clearCache();
+            crossbow.clearCache();
             cb();
         }).catch(function (err) {
             err = err.toString();
-            coderBlog.log("warn", err);
+            crossbow.log("warn", err);
             cb();
         })
     });
@@ -88,7 +90,7 @@ function buildOne(stream, item, config) {
 
     var deferred = Q.defer();
 
-    coderBlog.compileOne(item, config, function (err, out) {
+    crossbow.compileOne(item, config, function (err, out) {
 
         if (err) {
             deferred.reject(err);

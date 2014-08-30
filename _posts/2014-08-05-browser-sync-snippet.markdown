@@ -2,7 +2,7 @@
 layout: post
 title:  "BrowserSync snippet injector plugin."
 date:   2014-08-05
-categories: javascript nodejs
+categories: javascript, nodejs
 ---
 
 Sometimes, I simply don't need all of the cross-device synchronization stuff that [BrowserSync](http://browsersync.io) gives me. 

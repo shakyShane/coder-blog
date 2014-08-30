@@ -2,7 +2,7 @@
 layout: post
 title:  "GulpJS + SASS + BrowserSync ftw"
 date:   2014-01-25
-categories: javascript nodejs
+categories: javascript, nodejs
 ---
 
 Being the *new-kid-on-the-block*, [GulpJS](http://gulpjs.com/) is getting plently of attention lately. Instead of contributing to the pool of opinion-pieces out there though, I thought I'd walk you through setting it up with a really nice little workflow including `SASS` for CSS along with my open-source project, [BrowserSync.io](http://www.browsersync.io).

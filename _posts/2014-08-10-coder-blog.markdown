@@ -2,7 +2,7 @@
 layout: post
 title:  "Coder blog"
 date:   2014-08-10
-categories: javascript nodejs
+categories: javascript, nodejs
 ---
 
 Trust me, I've tried them all.

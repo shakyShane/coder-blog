@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html>
-
-{#inc src="head" /}
-
-<body class="post">
-
-{#inc src="header" /}
-
+---
+layout: parent
+---
 <main class="page-content">
     <div class="container">
         <div class="post">
@@ -14,18 +8,16 @@
             <header class="post-header">
                 <h1>{post.title}</h1>
                 <p class="meta">{post.date}</p>
+                <p class="meta"><b>In Categories:</b> - {#post.categories} {.} {/post.categories}</p>
             </header>
 
             <article class="post-content">
                 {#content /}
             </article>
 
+            {#inc src="related" related=post.related/}
+
             {#inc src="pagination" next=post.next prev=post.prev /}
         </div>
     </div>
 </main>
-
-{#inc src="footer" /}
-{#inc src="scripts" /}
-</body>
-</html>

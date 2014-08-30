@@ -2,7 +2,7 @@
 layout: post
 title:  "Using SASS - Being efficient with @mixin & @extend"
 date:   2013-10-13
-categories: SASS CSS
+categories: SASS, CSS
 ---
 
 When using SASS, LESS or Stylus it's easy to do things that bloat the resulting CSS.

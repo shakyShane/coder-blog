@@ -8,9 +8,11 @@ paginate: posts:5
 <p>
     There are <b>{posts.length}</b> posts on this blog.
 </p>
+{#paged}
 <p>
     Currently showing: <b>{paged.perPage}</b> posts per page
 </p>
+{/paged}
 </div>
 
 <br/>
@@ -24,4 +26,3 @@ paginate: posts:5
 <br/>
 
 {#inc src="pagination" next=paged.next prev=paged.prev /}
-
